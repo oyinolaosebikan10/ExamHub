@@ -452,6 +452,62 @@ const submitExam = async ({
     };
 };
 
+const getStudentExamResult = async ({
+    sessionId,
+    userId
+}) => {
+
+    const sessionDoc = await examSessionsCollection
+        .doc(sessionId)
+        .get();
+
+    if (!sessionDoc.exists) {
+        throw new Error("Exam session not found");
+    }
+
+    const session = sessionDoc.data();
+
+    if (session.userId !== userId) {
+        throw new Error(
+            "You are not allowed to access this exam result"
+        );
+    }
+
+    if (session.status !== "submitted") {
+        throw new Error(
+            "This exam has not been submitted yet"
+        );
+    }
+
+    const examDoc = await examsCollection
+        .doc(session.examId)
+        .get();
+
+    if (!examDoc.exists) {
+        throw new Error("Exam not found");
+    }
+
+    const exam = examDoc.data();
+
+    return {
+        sessionId,
+        examId: session.examId,
+        examTitle: exam.title || "Examination",
+
+        fullName: session.fullName,
+        registrationNumber: session.registrationNumber,
+        courseId: session.courseId,
+
+        score: Number(session.score) || 0,
+        totalMarks: Number(session.totalMarks) || 0,
+        percentage: Number(session.percentage) || 0,
+
+        submittedAt: session.submittedAt || null,
+        autoSubmitted: session.autoSubmitted === true,
+
+        status: session.status
+    };
+};
 
 const getExamParticipation = async (examId) => {
 
@@ -552,5 +608,6 @@ module.exports = {
     startExamSession,
     saveAnswers,
     submitExam,
+    getStudentExamResult,
     getExamParticipation
 };

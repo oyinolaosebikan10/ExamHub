@@ -2,6 +2,7 @@ const {
     startExamSession,
     saveAnswers,
     submitExam,
+    getStudentExamResult,
     getExamParticipation
 } = require("../services/examSessionService");
 
@@ -200,6 +201,44 @@ const submitExamController = async (req, res) => {
     }
 };
 
+const getStudentResultController = async (req, res) => {
+    try {
+        const { id: sessionId } = req.params;
+
+        const result = await getStudentExamResult({
+            sessionId,
+            userId: req.user.userId
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error("Get student result error:", error);
+
+        const knownErrors = [
+            "Exam session not found",
+            "You are not allowed to access this exam result",
+            "This exam has not been submitted yet",
+            "Exam not found"
+        ];
+
+        if (knownErrors.includes(error.message)) {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to load examination result"
+        });
+    }
+};
+
 const getExamParticipationController = async (req, res) => {
     try {
         const { examId } = req.params;
@@ -313,6 +352,7 @@ module.exports = {
     startExam,
     saveExamAnswers,
     submitExamController,
+    getStudentResultController,
     getAvailableExam,
     getExamParticipationController
 };

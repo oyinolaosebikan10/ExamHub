@@ -4,6 +4,7 @@ const {
     startExam,
     saveExamAnswers,
     submitExamController,
+    getStudentResultController,
     getExamParticipationController,
     getAvailableExam
 } = require("../controllers/examSessionController");
@@ -34,6 +35,13 @@ router.get(
     authMiddleware,
     roleMiddleware("admin"),
     getExamParticipationController
+);
+
+router.get(
+    "/:id/result",
+    authMiddleware,
+    roleMiddleware("student"),
+    getStudentResultController
 );
 
 router.patch(
