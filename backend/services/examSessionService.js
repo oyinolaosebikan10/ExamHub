@@ -280,7 +280,8 @@ const saveAnswers = async ({
 
 const submitExam = async ({
     sessionId,
-    userId
+    userId,
+    answers = {}
 }) => {
 
     const sessionRef = examSessionsCollection.doc(sessionId);
@@ -313,12 +314,15 @@ const submitExam = async ({
         throw new Error("Exam session expiry is invalid");
     }
 
+    /*
+     * The server decides whether this is an automatic submission
+     * based on the individual session expiry time.
+     */
     const autoSubmitted = now >= expiresAt;
 
     /*
      * Re-read the session immediately before grading.
-     * This reduces the chance of two simultaneous submissions
-     * being processed from the same old session state.
+     * This reduces the chance of processing stale session data.
      */
     const latestSessionDoc = await sessionRef.get();
 
@@ -340,7 +344,9 @@ const submitExam = async ({
         : [];
 
     if (questionIds.length === 0) {
-        throw new Error("No questions were assigned to this exam session");
+        throw new Error(
+            "No questions were assigned to this exam session"
+        );
     }
 
     const questionDocs = await Promise.all(
@@ -362,7 +368,18 @@ const submitExam = async ({
         );
     }
 
-    const answers = latestSession.answers || {};
+    /*
+     * Use the answers supplied with the submission when available.
+     * This prevents the final answer from being lost because a
+     * debounced save happened too close to exam expiry.
+     *
+     * If no answers were supplied, fall back to the answers already
+     * stored in Firestore.
+     */
+    const submittedAnswers =
+        answers && typeof answers === "object"
+            ? answers
+            : latestSession.answers || {};
 
     let score = 0;
     let totalMarks = 0;
@@ -373,7 +390,7 @@ const submitExam = async ({
 
         totalMarks += marks;
 
-        const studentAnswer = answers[question.id];
+        const studentAnswer = submittedAnswers[question.id];
 
         if (
             studentAnswer !== undefined &&
@@ -389,10 +406,17 @@ const submitExam = async ({
         : 0;
 
     /*
+     * Save the final answers before creating the result.
+     * This means Firestore contains the actual answers that were
+     * graded.
+     */
+    await sessionRef.update({
+        answers: submittedAnswers,
+        updatedAt: now
+    });
+
+    /*
      * Create the result using the session ID as the result document ID.
-     * resultService.createResult() already writes using sessionId,
-     * which guarantees the same session cannot create two different
-     * result documents.
      */
     await createResult({
         sessionId,
@@ -409,7 +433,7 @@ const submitExam = async ({
         submittedAt: now
     });
 
-    // Mark session as submitted
+    // Mark session as submitted.
     await sessionRef.update({
         status: "submitted",
         submittedAt: now,
@@ -423,7 +447,8 @@ const submitExam = async ({
     return {
         sessionId,
         submittedAt: now,
-        status: "submitted"
+        status: "submitted",
+        autoSubmitted
     };
 };
 

@@ -159,10 +159,15 @@ const saveExamAnswers = async (req, res) => {
 const submitExamController = async (req, res) => {
     try {
         const { id: sessionId } = req.params;
+        const { answers } = req.body;
 
         const result = await submitExam({
             sessionId,
-            userId: req.user.userId
+            userId: req.user.userId,
+            answers:
+                answers && typeof answers === "object"
+                    ? answers
+                    : {}
         });
 
         return res.status(200).json({
