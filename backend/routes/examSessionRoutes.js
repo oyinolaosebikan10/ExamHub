@@ -4,7 +4,8 @@ const {
     startExam,
     saveExamAnswers,
     submitExamController,
-    getExamParticipationController
+    getExamParticipationController,
+    getAvailableExam
 } = require("../controllers/examSessionController");
 
 
@@ -13,6 +14,13 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const{ examSubmitLimiter } = require("../config/rateLimiter");
 
 const router = express.Router();
+
+router.get(
+    "/available",
+    authMiddleware,
+    roleMiddleware("student"),
+    getAvailableExam
+);
 
 router.post(
     "/",

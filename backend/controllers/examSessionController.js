@@ -205,9 +205,91 @@ const getExamParticipationController = async (req, res) => {
     }
 };
 
+const getAvailableExam = async (req, res) => {
+    try {
+        const studentSnapshot = await studentsCollection
+            .where("userId", "==", req.user.userId)
+            .limit(1)
+            .get();
+
+        if (studentSnapshot.empty) {
+            return res.status(404).json({
+                success: false,
+                message: "Student record not found"
+            });
+        }
+
+        const student = studentSnapshot.docs[0].data();
+
+        const examSnapshot = await examsCollection
+            .where("courseId", "==", student.courseId)
+            .get();
+
+        const now = new Date();
+
+        const availableExams = [];
+
+        for (const examDoc of examSnapshot.docs) {
+            const exam = examDoc.data();
+
+            if (exam.status !== "active") {
+                continue;
+            }
+
+            if (!exam.programId) {
+                continue;
+            }
+
+            const programDoc = await programsCollection
+                .doc(exam.programId)
+                .get();
+
+            if (!programDoc.exists) {
+                continue;
+            }
+
+            const program = programDoc.data();
+
+            const examStart = toDate(program.examStart);
+            const examEnd = toDate(program.examEnd);
+
+            if (!examStart || !examEnd) {
+                continue;
+            }
+
+            if (now < examStart || now > examEnd) {
+                continue;
+            }
+
+            availableExams.push({
+                id: examDoc.id,
+                title: exam.title,
+                courseId: exam.courseId,
+                programId: exam.programId,
+                durationMinutes: exam.durationMinutes,
+                questionCount: exam.questionCount
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: availableExams
+        });
+
+    } catch (error) {
+        console.error("Get available exam error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to get available examination"
+        });
+    }
+};
+
 module.exports = {
     startExam,
     saveExamAnswers,
     submitExamController,
+    getAvailableExam,
     getExamParticipationController
 };
