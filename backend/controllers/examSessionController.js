@@ -8,6 +8,24 @@ const {
 const { db } = require("../firebase/firebaseAdmin");
 
 const studentsCollection = db.collection("students");
+const examsCollection = db.collection("exams");
+const programsCollection = db.collection("programs");
+
+const toDate = (value) => {
+    if (!value) return null;
+
+    if (value instanceof Date) {
+        return value;
+    }
+
+    if (typeof value.toDate === "function") {
+        return value.toDate();
+    }
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? null : date;
+}
 
 const startExam = async (req, res) => {
     try {
