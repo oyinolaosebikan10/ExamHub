@@ -122,13 +122,6 @@ if (duplicateRegistration) {
     });
 }
 
-        if (!existingStudents.empty) {
-            return res.status(409).json({
-                success: false,
-                message: "A student with these registration details already exists"
-            });
-        }
-
         // 7. Generate registration number
         const registrationNumber =
             await generateRegistrationNumber(
