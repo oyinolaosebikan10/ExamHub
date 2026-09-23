@@ -105,6 +105,21 @@ const getStudentResultsByUserId = async (userId) => {
         });
     }
 
+    results.sort((a, b) => {
+
+    const dateA =
+        a.submittedAt?.toDate
+            ? a.submittedAt.toDate()
+            : new Date(a.submittedAt || 0);
+
+    const dateB =
+        b.submittedAt?.toDate
+            ? b.submittedAt.toDate()
+            : new Date(b.submittedAt || 0);
+
+    return dateB - dateA;
+});
+
     return results;
 };
 
