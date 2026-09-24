@@ -1,4 +1,4 @@
- const { db } = require("../firebase/firebaseAdmin");
+const { db } = require("../firebase/firebaseAdmin");
 
 const schoolsCollection = db.collection("schools");
 
@@ -71,20 +71,90 @@ const updateSchool = async (schoolId, updateData = {}) => {
         throw new Error("School not found");
     }
 
-    const dataToUpdate = {
-        ...updateData,
-        updatedAt: new Date()
-    };
+    const allowedFields = [
+        "name",
+        "code",
+        "address",
+        "isActive"
+    ];
 
-    if (dataToUpdate.name) {
+    const dataToUpdate = {};
+
+    // Only allow approved fields
+    for (const field of allowedFields) {
+        if (updateData[field] !== undefined) {
+            dataToUpdate[field] = updateData[field];
+        }
+    }
+
+    if (Object.keys(dataToUpdate).length === 0) {
+        throw new Error("No valid fields provided for update");
+    }
+
+    // Normalize name
+    if (dataToUpdate.name !== undefined) {
+        if (
+            typeof dataToUpdate.name !== "string" ||
+            !dataToUpdate.name.trim()
+        ) {
+            throw new Error("School name is required");
+        }
+
         dataToUpdate.name = dataToUpdate.name.trim();
     }
 
-    if (dataToUpdate.code) {
+    // Normalize and validate code
+    if (dataToUpdate.code !== undefined) {
+        if (
+            typeof dataToUpdate.code !== "string" ||
+            !dataToUpdate.code.trim()
+        ) {
+            throw new Error("School code is required");
+        }
+
         dataToUpdate.code = dataToUpdate.code
             .trim()
             .toUpperCase();
+
+        // Prevent another school from using the same code
+        const existingSchool = await schoolsCollection
+            .where("code", "==", dataToUpdate.code)
+            .limit(2)
+            .get();
+
+        const duplicateExists = existingSchool.docs.some(
+            doc => doc.id !== schoolId
+        );
+
+        if (duplicateExists) {
+            throw new Error(
+                "A school with this code already exists"
+            );
+        }
     }
+
+    // Validate address if supplied
+    if (dataToUpdate.address !== undefined) {
+        if (
+            dataToUpdate.address !== null &&
+            typeof dataToUpdate.address !== "string"
+        ) {
+            throw new Error(
+                "School address must be a string or null"
+            );
+        }
+    }
+
+    // Validate active status if supplied
+    if (dataToUpdate.isActive !== undefined) {
+        if (typeof dataToUpdate.isActive !== "boolean") {
+            throw new Error(
+                "isActive must be a boolean"
+            );
+        }
+    }
+
+    dataToUpdate.updatedAt = new Date();
 
     await schoolRef.update(dataToUpdate);
 

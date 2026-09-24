@@ -48,6 +48,33 @@ const getAllCourses = async () => {
     return courses;
 };
 
+/*
+|--------------------------------------------------------------------------
+| Public course list
+|--------------------------------------------------------------------------
+| Used by student registration.
+| Only safe course information is returned.
+|--------------------------------------------------------------------------
+*/
+
+const getAvailableCourses = async () => {
+    const snapshot = await coursesCollection
+        .where("isActive", "==", true)
+        .get();
+
+    return snapshot.docs.map((doc) => {
+        const course = doc.data();
+
+        return {
+            id: doc.id,
+            name: course.name,
+            code: course.code,
+            slug: course.slug,
+            description: course.description
+        };
+    });
+};
+
 const getCourseById = async (courseId) => {
     if (!courseId) {
         throw new Error("Course ID is required");
@@ -70,5 +97,6 @@ const getCourseById = async (courseId) => {
 module.exports = {
     createCourse,
     getAllCourses,
+    getAvailableCourses,
     getCourseById
 };

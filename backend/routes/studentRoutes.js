@@ -1,93 +1,58 @@
 const express = require("express");
 
 const {
-
     getAllStudents,
-
     getSingleStudent,
-
     updateStudentStatusController,
-
     getMyProfileController
-
 } = require("../controllers/studentController");
 
-const authMiddleware =
-    require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
 
-const roleMiddleware =
-    require("../middleware/roleMiddleware");
+const router = express.Router();
 
-const router =
-    express.Router();
-
-
-// =========================================================
-// STUDENT SELF PROFILE
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| Student's own profile
+|--------------------------------------------------------------------------
+*/
 
 router.get(
-
     "/me",
-
     authMiddleware,
-
     roleMiddleware("student"),
-
     getMyProfileController
-
 );
 
+/*
+|--------------------------------------------------------------------------
+| Admin student management
+|--------------------------------------------------------------------------
+*/
 
-// =========================================================
-// ADMIN — GET ALL STUDENTS
-// =========================================================
-
+// Get all students
 router.get(
-
     "/",
-
     authMiddleware,
-
     roleMiddleware("admin"),
-
     getAllStudents
-
 );
 
-
-// =========================================================
-// ADMIN — UPDATE STUDENT STATUS
-// =========================================================
-
+// Update student active/inactive status
 router.patch(
-
     "/:studentId/status",
-
     authMiddleware,
-
     roleMiddleware("admin"),
-
     updateStudentStatusController
-
 );
 
-
-// =========================================================
-// ADMIN — GET SINGLE STUDENT
-// =========================================================
-
+// Get single student
 router.get(
-
     "/:studentId",
-
     authMiddleware,
-
     roleMiddleware("admin"),
-
     getSingleStudent
-
 );
-
 
 module.exports = router;

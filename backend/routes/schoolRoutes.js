@@ -1,20 +1,30 @@
 const express = require("express");
 
 const {
-    updateStudentStatusController
-} = require("../controllers/studentController");
+    createSchoolController,
+    getAllSchoolsController,
+    getSchoolController,
+    updateSchoolController
+} = require("../controllers/schoolController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
-// Update student active/inactive status
-router.patch(
-    "/:studentId/status",
-    authMiddleware,
-    roleMiddleware("admin"),
-    updateStudentStatusController
-);
+// All school management is admin-only
+router.use(authMiddleware, roleMiddleware("admin"));
+
+// Create school
+router.post("/", createSchoolController);
+
+// Get all schools
+router.get("/", getAllSchoolsController);
+
+// Get single school
+router.get("/:schoolId", getSchoolController);
+
+// Update school
+router.patch("/:schoolId", updateSchoolController);
 
 module.exports = router;

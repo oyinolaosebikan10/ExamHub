@@ -6,7 +6,6 @@ const coursesCollection = db.collection("courses");
 const programsCollection = db.collection("programs");
 
 
-
 const createEnrollment = async ({
     studentId,
     programId,
@@ -32,23 +31,23 @@ const createEnrollment = async ({
     const program = programDoc.data();
 
     if (program.isActive === false) {
-    throw new Error("Program is inactive");
-}
+        throw new Error("Program is inactive");
+    }
 
     // Check course
     const courseDoc = await coursesCollection
-    .doc(courseId)
-    .get();
+        .doc(courseId)
+        .get();
 
-if (!courseDoc.exists) {
-    throw new Error("Course not found");
-}
+    if (!courseDoc.exists) {
+        throw new Error("Course not found");
+    }
 
-const course = courseDoc.data();
+    const course = courseDoc.data();
 
-if (course.isActive === false) {
-    throw new Error("Course is inactive");
-}
+    if (course.isActive === false) {
+        throw new Error("Course is inactive");
+    }
 
     // School comes from the program
     const schoolId =
@@ -164,42 +163,16 @@ const updateEnrollment = async (
         }
     }
 
-    // Validate program if it is being changed
-    if (dataToUpdate.programId) {
-        const programDoc =
-            await programsCollection
-                .doc(dataToUpdate.programId)
-                .get();
-
-        if (!programDoc.exists) {
-            throw new Error("Program not found");
-        }
-
-        const program = programDoc.data();
-
-        // School always comes from the program
-        dataToUpdate.schoolId =
-            program.venueType === "school"
-                ? program.schoolId
-                : null;
+    if (Object.keys(dataToUpdate).length === 0) {
+        throw new Error(
+            "No valid fields provided for update"
+        );
     }
 
-    // Validate course if it is being changed
-    if (dataToUpdate.courseId) {
-        const courseDoc =
-            await coursesCollection
-                .doc(dataToUpdate.courseId)
-                .get();
-
-        if (!courseDoc.exists) {
-            throw new Error("Course not found");
-        }
-    }
-
-    // Get the final program and course values
     const currentEnrollment =
         enrollmentDoc.data();
 
+    // Get the final program and course values
     const finalProgramId =
         dataToUpdate.programId ||
         currentEnrollment.programId;
@@ -208,13 +181,72 @@ const updateEnrollment = async (
         dataToUpdate.courseId ||
         currentEnrollment.courseId;
 
+    /*
+     * Validate the FINAL program.
+     * This matters even when programId wasn't changed,
+     * because the enrollment must still point to a valid
+     * active program.
+     */
+    const programDoc =
+        await programsCollection
+            .doc(finalProgramId)
+            .get();
+
+    if (!programDoc.exists) {
+        throw new Error("Program not found");
+    }
+
+    const program = programDoc.data();
+
+    if (program.isActive === false) {
+        throw new Error("Program is inactive");
+    }
+
+    // School always comes from the final program
+    dataToUpdate.schoolId =
+        program.venueType === "school"
+            ? program.schoolId
+            : null;
+
+    // Validate the FINAL course
+    const courseDoc =
+        await coursesCollection
+            .doc(finalCourseId)
+            .get();
+
+    if (!courseDoc.exists) {
+        throw new Error("Course not found");
+    }
+
+    const course = courseDoc.data();
+
+    if (course.isActive === false) {
+        throw new Error("Course is inactive");
+    }
+
     // Prevent duplicate active enrollment
     const existingEnrollment =
         await enrollmentsCollection
-            .where("studentId", "==", currentEnrollment.studentId)
-            .where("programId", "==", finalProgramId)
-            .where("courseId", "==", finalCourseId)
-            .where("status", "==", "active")
+            .where(
+                "studentId",
+                "==",
+                currentEnrollment.studentId
+            )
+            .where(
+                "programId",
+                "==",
+                finalProgramId
+            )
+            .where(
+                "courseId",
+                "==",
+                finalCourseId
+            )
+            .where(
+                "status",
+                "==",
+                "active"
+            )
             .limit(2)
             .get();
 
