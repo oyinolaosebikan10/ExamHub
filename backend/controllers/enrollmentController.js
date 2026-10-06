@@ -4,7 +4,10 @@ const {
     getEnrollmentsByStudent,
     getEnrollmentsByUserId,
     getEnrollmentById,
-    updateEnrollment
+    updateEnrollment,
+    deactivateEnrollment,
+    reactivateEnrollment,
+    deleteEnrollment
 } = require("../services/enrollmentService");
 
 
@@ -226,6 +229,130 @@ const updateEnrollmentController = async (req, res) => {
     }
 };
 
+const deactivateEnrollmentController = async (req, res) => {
+    try {
+        const enrollment = await deactivateEnrollment(req.params.id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Enrollment deactivated successfully",
+            data: enrollment
+        });
+    } catch (error) {
+        console.error("Deactivate enrollment error:", error);
+
+        if (error.message === "Enrollment not found") {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (error.message === "Invalid enrollment ID") {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (
+            error.message === "Enrollment is already inactive" ||
+            error.message ===
+                "Enrollment cannot be deactivated from its current status"
+        ) {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to deactivate enrollment"
+        });
+    }
+};
+
+const reactivateEnrollmentController = async (req, res) => {
+    try {
+        const enrollment = await reactivateEnrollment(req.params.id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Enrollment reactivated successfully",
+            data: enrollment
+        });
+    } catch (error) {
+        console.error("Reactivate enrollment error:", error);
+
+        if (error.message === "Enrollment not found") {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (error.message === "Invalid enrollment ID") {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (
+            error.message === "Enrollment is already active" ||
+            error.message ===
+                "Enrollment cannot be reactivated from its current status" ||
+            error.message ===
+                "Student is already enrolled in this program and course"
+        ) {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to reactivate enrollment"
+        });
+    }
+};
+
+const deleteEnrollmentController = async (req, res) => {
+    try {
+        const result = await deleteEnrollment(req.params.id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Enrollment deleted successfully",
+            data: {
+                id: result.id
+            }
+        });
+    } catch (error) {
+        console.error("Delete enrollment error:", error);
+
+        if (error.message === "Enrollment not found") {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (error.message === "Invalid enrollment ID") {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to delete enrollment"
+        });
+    }
+};
 
 
 
@@ -235,5 +362,8 @@ module.exports = {
     getStudentEnrollmentsController,
     getMyEnrollmentsController,
     getSingleEnrollmentController,
-    updateEnrollmentController
+    updateEnrollmentController,
+    deactivateEnrollmentController,
+    reactivateEnrollmentController,
+    deleteEnrollmentController
 };

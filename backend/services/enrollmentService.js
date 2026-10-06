@@ -289,6 +289,104 @@ const getEnrollmentById = async (enrollmentId) => {
     };
 };
 
+const getEnrollmentReference = (enrollmentId) => {
+    if (
+        typeof enrollmentId !== "string" ||
+        !enrollmentId ||
+        enrollmentId.includes("/") ||
+        enrollmentId === "." ||
+        enrollmentId === ".." ||
+        /^__.*__$/.test(enrollmentId) ||
+        Buffer.byteLength(enrollmentId, "utf8") > 1500
+    ) {
+        throw new Error("Invalid enrollment ID");
+    }
+
+    return enrollmentsCollection.doc(enrollmentId);
+};
+
+const updateEnrollmentStatus = async (enrollmentId, status) => {
+    const enrollmentRef = getEnrollmentReference(enrollmentId);
+    const enrollmentDoc = await enrollmentRef.get();
+
+    if (!enrollmentDoc.exists) {
+        throw new Error("Enrollment not found");
+    }
+
+    const currentEnrollment = enrollmentDoc.data();
+
+    if (currentEnrollment.status === status) {
+        throw new Error(
+            status === "inactive"
+                ? "Enrollment is already inactive"
+                : "Enrollment is already active"
+        );
+    }
+
+    if (status === "active") {
+        if (currentEnrollment.status !== "inactive") {
+            throw new Error(
+                "Enrollment cannot be reactivated from its current status"
+            );
+        }
+
+        const existingEnrollment = await enrollmentsCollection
+            .where("studentId", "==", currentEnrollment.studentId)
+            .where("programId", "==", currentEnrollment.programId)
+            .where("courseId", "==", currentEnrollment.courseId)
+            .where("status", "==", "active")
+            .limit(2)
+            .get();
+
+        const duplicateExists = existingEnrollment.docs.some(
+            doc => doc.id !== enrollmentId
+        );
+
+        if (duplicateExists) {
+            throw new Error(
+                "Student is already enrolled in this program and course"
+            );
+        }
+    } else if (currentEnrollment.status !== "active") {
+        throw new Error(
+            "Enrollment cannot be deactivated from its current status"
+        );
+    }
+
+    await enrollmentRef.update({
+        status,
+        updatedAt: new Date()
+    });
+
+    const updatedDoc = await enrollmentRef.get();
+
+    return {
+        id: updatedDoc.id,
+        ...updatedDoc.data()
+    };
+};
+
+const deactivateEnrollment = async (enrollmentId) => {
+    return updateEnrollmentStatus(enrollmentId, "inactive");
+};
+
+const reactivateEnrollment = async (enrollmentId) => {
+    return updateEnrollmentStatus(enrollmentId, "active");
+};
+
+const deleteEnrollment = async (enrollmentId) => {
+    const enrollmentRef = getEnrollmentReference(enrollmentId);
+    const enrollmentDoc = await enrollmentRef.get();
+
+    if (!enrollmentDoc.exists) {
+        throw new Error("Enrollment not found");
+    }
+
+    await enrollmentRef.delete();
+
+    return { id: enrollmentId };
+};
+
 
 module.exports = {
     enrollmentsCollection,
@@ -297,5 +395,8 @@ module.exports = {
     getEnrollmentsByStudent,
     getEnrollmentsByUserId,
     getEnrollmentById,
-    updateEnrollment
+    updateEnrollment,
+    deactivateEnrollment,
+    reactivateEnrollment,
+    deleteEnrollment
 };

@@ -6,7 +6,10 @@ const {
     getStudentEnrollmentsController,
     getMyEnrollmentsController,
     getSingleEnrollmentController,
-    updateEnrollmentController
+    updateEnrollmentController,
+    deactivateEnrollmentController,
+    reactivateEnrollmentController,
+    deleteEnrollmentController
 } = require("../controllers/enrollmentController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -46,6 +49,28 @@ router.get(
     authMiddleware,
     roleMiddleware("student"),
     getMyEnrollmentsController
+);
+
+// Admin manages enrollment lifecycle
+router.patch(
+    "/:id/deactivate",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deactivateEnrollmentController
+);
+
+router.patch(
+    "/:id/reactivate",
+    authMiddleware,
+    roleMiddleware("admin"),
+    reactivateEnrollmentController
+);
+
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteEnrollmentController
 );
 
 // Get one enrollment
