@@ -55,6 +55,8 @@ const createExamController = async (req, res) => {
         console.error("Create exam error:", error);
 
         if (error.message === "Program not found" ||
+            error.message === "Program is inactive" ||
+            error.message === "Program has already completed" ||
             error.message === "Selected course does not exist" ||
             error.message === "Exam duration must be a positive whole number" ||
             error.message === "Question count must be a positive whole number"

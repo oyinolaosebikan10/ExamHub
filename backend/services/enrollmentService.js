@@ -4,6 +4,7 @@ const enrollmentsCollection = db.collection("enrollments");
 const studentsCollection = db.collection("students");
 const coursesCollection = db.collection("courses");
 const programsCollection = db.collection("programs");
+const { isProgramActive } = require("./programService");
 
 
 const createEnrollment = async ({
@@ -30,7 +31,7 @@ const createEnrollment = async ({
 
     const program = programDoc.data();
 
-    if (program.isActive === false) {
+    if (!isProgramActive(program)) {
         throw new Error("Program is inactive");
     }
 
@@ -198,7 +199,7 @@ const updateEnrollment = async (
 
     const program = programDoc.data();
 
-    if (program.isActive === false) {
+    if (!isProgramActive(program)) {
         throw new Error("Program is inactive");
     }
 
@@ -328,6 +329,18 @@ const updateEnrollmentStatus = async (enrollmentId, status) => {
             throw new Error(
                 "Enrollment cannot be reactivated from its current status"
             );
+        }
+
+        const programDoc = await programsCollection
+            .doc(currentEnrollment.programId)
+            .get();
+
+        if (!programDoc.exists) {
+            throw new Error("Program not found");
+        }
+
+        if (!isProgramActive(programDoc.data())) {
+            throw new Error("Program is inactive");
         }
 
         const existingEnrollment = await enrollmentsCollection

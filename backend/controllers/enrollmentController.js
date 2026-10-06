@@ -67,6 +67,7 @@ const createEnrollmentController = async (req, res) => {
         const knownErrors = [
             "Student not found",
             "Program not found",
+            "Program is inactive",
             "Course not found",
             "Student is already enrolled in this program and course"
         ];
@@ -212,11 +213,19 @@ const updateEnrollmentController = async (req, res) => {
 
         const knownErrors = [
             "Enrollment not found",
+            "Program is inactive",
             "Course not found"
         ];
 
         if (knownErrors.includes(error.message)) {
             return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (error.message === "Program not found") {
+            return res.status(404).json({
                 success: false,
                 message: error.message
             });
@@ -292,6 +301,13 @@ const reactivateEnrollmentController = async (req, res) => {
             });
         }
 
+        if (error.message === "Program not found") {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
         if (error.message === "Invalid enrollment ID") {
             return res.status(400).json({
                 success: false,
@@ -301,6 +317,7 @@ const reactivateEnrollmentController = async (req, res) => {
 
         if (
             error.message === "Enrollment is already active" ||
+            error.message === "Program is inactive" ||
             error.message ===
                 "Enrollment cannot be reactivated from its current status" ||
             error.message ===

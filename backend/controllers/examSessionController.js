@@ -11,6 +11,7 @@ const { db } = require("../firebase/firebaseAdmin");
 const studentsCollection = db.collection("students");
 const examsCollection = db.collection("exams");
 const programsCollection = db.collection("programs");
+const { isProgramActive } = require("../services/programService");
 
 const toDate = (value) => {
     if (!value) return null;
@@ -77,6 +78,7 @@ const startExam = async (req, res) => {
     "This exam is not available for your course",
     "This exam is not linked to a program",
     "Program not found",
+    "Program is inactive",
     "The exam has not started yet",
     "The exam period has ended",
     "Student not found",
@@ -311,6 +313,10 @@ const getAvailableExam = async (req, res) => {
             }
 
             const program = programDoc.data();
+
+            if (!isProgramActive(program)) {
+                continue;
+            }
 
             const examStart = toDate(program.examStart);
             const examEnd = toDate(program.examEnd);

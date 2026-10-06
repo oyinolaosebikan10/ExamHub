@@ -8,6 +8,7 @@ const questionsCollection = db.collection("questions");
 const enrollmentsCollection = db.collection("enrollments");
 const studentsCollection = db.collection("students");
 const programsCollection = db.collection("programs");
+const { isProgramActive } = require("./programService");
 
 const toDate = (value) => {
     if (!value) return null;
@@ -63,6 +64,10 @@ const startExamSession = async ({
     }
 
     const program = programDoc.data();
+
+    if (!isProgramActive(program)) {
+        throw new Error("Program is inactive");
+    }
 
     const now = new Date();
 

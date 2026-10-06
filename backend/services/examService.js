@@ -1,4 +1,8 @@
 const { db } = require("../firebase/firebaseAdmin");
+const {
+    isProgramActive,
+    isProgramScheduleCompleted
+} = require("./programService");
 
 const examsCollection = db.collection("exams");
 const coursesCollection = db.collection("courses");
@@ -18,8 +22,18 @@ const createExam = async ({
     .get();
 
     if (!programDoc.exists) {
-    throw new Error("Program not found");
-}
+        throw new Error("Program not found");
+    }
+
+    const program = programDoc.data();
+
+    if (!isProgramActive(program)) {
+        throw new Error("Program is inactive");
+    }
+
+    if (isProgramScheduleCompleted(program)) {
+        throw new Error("Program has already completed");
+    }
 
     // Check that the course exists
     const courseDoc = await coursesCollection

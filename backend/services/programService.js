@@ -29,6 +29,14 @@ const toDate = (value) => {
     return date;
 };
 
+const isProgramActive = (program) =>
+    program?.isActive !== false;
+
+const isProgramScheduleCompleted = (program) => {
+    const examEnd = toDate(program?.examEnd);
+    return Boolean(examEnd && new Date() > examEnd);
+};
+
 /**
  * Validate the four program dates.
  */
@@ -172,6 +180,7 @@ const createProgram = async ({
         resultDownloadEnabled: false,
 
         status: "upcoming",
+        isActive: true,
 
         createdAt: new Date(),
         updatedAt: new Date()
@@ -417,6 +426,48 @@ const updateProgram = async (
     };
 };
 
+const updateProgramLifecycle = async (programId, isActive) => {
+    if (!programId) {
+        throw new Error("Program not found");
+    }
+
+    const programRef = programsCollection.doc(programId);
+
+    await db.runTransaction(async (transaction) => {
+        const programDoc = await transaction.get(programRef);
+
+        if (!programDoc.exists) {
+            throw new Error("Program not found");
+        }
+
+        if (isProgramActive(programDoc.data()) === isActive) {
+            throw new Error(
+                isActive
+                    ? "Program is already active"
+                    : "Program is already inactive"
+            );
+        }
+
+        transaction.update(programRef, {
+            isActive,
+            updatedAt: new Date()
+        });
+    });
+
+    const updatedDoc = await programRef.get();
+
+    return {
+        id: updatedDoc.id,
+        ...updatedDoc.data()
+    };
+};
+
+const deactivateProgram = async (programId) =>
+    updateProgramLifecycle(programId, false);
+
+const reactivateProgram = async (programId) =>
+    updateProgramLifecycle(programId, true);
+
 /**
  * Determine the current availability of a program.
  */
@@ -509,7 +560,11 @@ const getAvailableProgramsForRegistration = async () => {
             ...program,
             ...getProgramAvailability(program)
         }))
-        .filter((program) => program.registrationOpen);
+        .filter(
+            (program) =>
+                isProgramActive(program) &&
+                program.registrationOpen
+        );
 };
 
 /**
@@ -536,6 +591,10 @@ module.exports = {
     getAllPrograms,
     getProgramById,
     updateProgram,
+    deactivateProgram,
+    reactivateProgram,
+    isProgramActive,
+    isProgramScheduleCompleted,
     getProgramAvailability,
     getAvailableProgramsForRegistration,
     getProgramResultAvailability

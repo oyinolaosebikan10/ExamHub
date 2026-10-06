@@ -3,6 +3,8 @@ const {
     getAllPrograms,
     getProgramById,
     updateProgram,
+    deactivateProgram,
+    reactivateProgram,
     getAvailableProgramsForRegistration
 } = require("../services/programService");
 
@@ -199,6 +201,72 @@ const updateProgramController = async (req, res) => {
     }
 };
 
+const deactivateProgramController = async (req, res) => {
+    try {
+        const program = await deactivateProgram(req.params.programId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Program deactivated successfully",
+            data: program
+        });
+    } catch (error) {
+        console.error("Deactivate program error:", error);
+
+        if (error.message === "Program not found") {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (error.message === "Program is already inactive") {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to deactivate program"
+        });
+    }
+};
+
+const reactivateProgramController = async (req, res) => {
+    try {
+        const program = await reactivateProgram(req.params.programId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Program reactivated successfully",
+            data: program
+        });
+    } catch (error) {
+        console.error("Reactivate program error:", error);
+
+        if (error.message === "Program not found") {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (error.message === "Program is already active") {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to reactivate program"
+        });
+    }
+};
+
 const getAvailableProgramsController = async (req, res) => {
     try {
         const programs =
@@ -227,5 +295,7 @@ module.exports = {
     getAllProgramsController,
     getProgramController,
     updateProgramController,
+    deactivateProgramController,
+    reactivateProgramController,
     getAvailableProgramsController
 };
