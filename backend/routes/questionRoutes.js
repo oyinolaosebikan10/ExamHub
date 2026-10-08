@@ -8,7 +8,10 @@ const {
     deleteQuestion
 } = require("../controllers/questionController");
 
-const { validateQuestion } = require("../validators/questionValidator");
+const {
+    validateQuestion,
+    validateQuestionUpdate
+} = require("../validators/questionValidator");
 const validate = require("../middleware/validate");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -34,7 +37,12 @@ router.get("/", getQuestions);
 router.get("/:id", getQuestionById);
 
 // Update question
-router.patch("/:id", updateQuestion);
+router.patch(
+    "/:id",
+    validateQuestionUpdate,
+    validate,
+    updateQuestion
+);
 
 // Delete question
 router.delete("/:id", deleteQuestion);

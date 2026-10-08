@@ -3,7 +3,8 @@ const {
     saveAnswers,
     submitExam,
     getStudentExamResult,
-    getExamParticipation
+    getExamParticipation,
+    getStudentExamAttemptStatuses
 } = require("../services/examSessionService");
 
 const { db } = require("../firebase/firebaseAdmin");
@@ -72,6 +73,19 @@ const startExam = async (req, res) => {
     } catch (error) {
         console.error("Start exam error:", error);
 
+        const conflictErrors = [
+            "You already have an active session for this exam",
+            "You have already submitted this exam",
+            "You have already attempted this exam"
+        ];
+
+        if (conflictErrors.includes(error.message)) {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
         const knownErrors = [
     "Exam not found",
     "This exam is not currently active",
@@ -84,8 +98,6 @@ const startExam = async (req, res) => {
     "Student not found",
     "You are not actively enrolled in this course",
     "Not enough questions available",
-    "You already have an active exam session",
-    "You have already submitted this exam",
     "Exam schedule is not properly configured",
     "You are not allowed to start this exam"
 ];
@@ -220,6 +232,13 @@ const getStudentResultController = async (req, res) => {
     } catch (error) {
         console.error("Get student result error:", error);
 
+        if (error.message === "Results not released") {
+            return res.status(403).json({
+                success: false,
+                message: error.message
+            });
+        }
+
         const knownErrors = [
             "Exam session not found",
             "You are not allowed to access this exam result",
@@ -283,7 +302,10 @@ const getAvailableExam = async (req, res) => {
             });
         }
 
-        const student = studentSnapshot.docs[0].data();
+        const studentDoc = studentSnapshot.docs[0];
+        const student = studentDoc.data();
+        const attemptStatuses =
+            await getStudentExamAttemptStatuses(studentDoc.id);
 
         const examSnapshot = await examsCollection
             .where("courseId", "==", student.courseId)
@@ -335,7 +357,9 @@ const getAvailableExam = async (req, res) => {
                 courseId: exam.courseId,
                 programId: exam.programId,
                 durationMinutes: exam.durationMinutes,
-                questionCount: exam.questionCount
+                questionCount: exam.questionCount,
+                attemptStatus:
+                    attemptStatuses[examDoc.id] || null
             });
         }
 

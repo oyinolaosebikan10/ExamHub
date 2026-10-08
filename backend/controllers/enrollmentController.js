@@ -68,6 +68,7 @@ const createEnrollmentController = async (req, res) => {
             "Student not found",
             "Program not found",
             "Program is inactive",
+            "Program has already completed",
             "Course not found",
             "Student is already enrolled in this program and course"
         ];
@@ -214,6 +215,7 @@ const updateEnrollmentController = async (req, res) => {
         const knownErrors = [
             "Enrollment not found",
             "Program is inactive",
+            "Program has already completed",
             "Course not found"
         ];
 

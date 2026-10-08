@@ -1,5 +1,21 @@
 const { body } = require("express-validator");
 
+const validateUpdatedQuestionOptions = body("options")
+    .if((_value, { req }) =>
+        req.body &&
+        Object.prototype.hasOwnProperty.call(req.body, "options")
+    )
+    .custom((options) =>
+        options &&
+        typeof options === "object" &&
+        !Array.isArray(options) &&
+        ["A", "B", "C", "D"].every((key) =>
+            typeof options[key] === "string" &&
+            options[key].trim().length > 0
+        )
+    )
+    .withMessage("Options A, B, C, and D are required");
+
 const validateQuestion = [
     body("courseId")
         .trim()
@@ -41,6 +57,11 @@ const validateQuestion = [
         .withMessage("Marks must be a positive number")
 ];
 
+const validateQuestionUpdate = [
+    validateUpdatedQuestionOptions
+];
+
 module.exports = {
-    validateQuestion
+    validateQuestion,
+    validateQuestionUpdate
 };

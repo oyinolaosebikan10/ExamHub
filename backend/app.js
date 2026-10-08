@@ -19,8 +19,14 @@ const {
 
 const app = express();
 
+// Render is a proxy in front of the app. Trust the first proxy hop so
+// express-rate-limit can correctly resolve client IPs from X-Forwarded-For.
+app.set("trust proxy", 1);
+
 app.use(cors());
 app.use(express.json());
+app.use(generalLimiter);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/students", studentRoutes);
@@ -32,7 +38,6 @@ app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/programs", programRoutes);
 app.use("/api/student-results", studentResultRoutes);
-app.use(generalLimiter);
 
 app.get("/", (req, res) => {
     res.json({

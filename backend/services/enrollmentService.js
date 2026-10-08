@@ -4,7 +4,10 @@ const enrollmentsCollection = db.collection("enrollments");
 const studentsCollection = db.collection("students");
 const coursesCollection = db.collection("courses");
 const programsCollection = db.collection("programs");
-const { isProgramActive } = require("./programService");
+const {
+    isProgramActive,
+    isProgramScheduleCompleted
+} = require("./programService");
 
 
 const createEnrollment = async ({
@@ -33,6 +36,10 @@ const createEnrollment = async ({
 
     if (!isProgramActive(program)) {
         throw new Error("Program is inactive");
+    }
+
+    if (isProgramScheduleCompleted(program)) {
+        throw new Error("Program has already completed");
     }
 
     // Check course
@@ -201,6 +208,13 @@ const updateEnrollment = async (
 
     if (!isProgramActive(program)) {
         throw new Error("Program is inactive");
+    }
+
+    if (
+        finalProgramId !== currentEnrollment.programId &&
+        isProgramScheduleCompleted(program)
+    ) {
+        throw new Error("Program has already completed");
     }
 
     // School always comes from the final program

@@ -10,6 +10,18 @@ const studentsCollection = db.collection("students");
 const programsCollection = db.collection("programs");
 const { isProgramActive } = require("./programService");
 
+const hasCompleteOptions = (question) => {
+    const optionKeys = ["A", "B", "C", "D"];
+
+    return question.options &&
+        typeof question.options === "object" &&
+        !Array.isArray(question.options) &&
+        optionKeys.every((key) =>
+            typeof question.options[key] === "string" &&
+            question.options[key].trim().length > 0
+        );
+};
+
 const toDate = (value) => {
     if (!value) return null;
 
@@ -129,19 +141,10 @@ const startExamSession = async ({
         ...enrollmentDoc.data()
     };
 
-    // 6. Prevent multiple active sessions
-    const existingSessionSnapshot = await examSessionsCollection
+    // 6. Create only one attempt for this student and exam.
+    const existingSessionQuery = examSessionsCollection
         .where("studentId", "==", studentId)
-        .where("examId", "==", examId)
-        .where("status", "==", "in-progress")
-        .limit(1)
-        .get();
-
-    if (!existingSessionSnapshot.empty) {
-        throw new Error(
-            "You already have an active session for this exam"
-        );
-    }
+        .where("examId", "==", examId);
 
     // 7. Get active questions
     const questionSnapshot = await questionsCollection
@@ -153,7 +156,10 @@ const startExamSession = async ({
             id: doc.id,
             ...doc.data()
         }))
-        .filter(question => question.isActive !== false);
+        .filter(question =>
+            question.isActive !== false &&
+            hasCompleteOptions(question)
+        );
 
     // 8. Make sure there are enough questions
     if (questions.length < exam.questionCount) {
@@ -210,7 +216,33 @@ const startExamSession = async ({
         updatedAt: startedAt
     };
 
-    await sessionRef.set(sessionData);
+    await db.runTransaction(async transaction => {
+        const existingSessionSnapshot =
+            await transaction.get(existingSessionQuery);
+
+        if (!existingSessionSnapshot.empty) {
+            const statuses = existingSessionSnapshot.docs
+                .map(doc => doc.data().status);
+
+            if (statuses.includes("submitted")) {
+                throw new Error(
+                    "You have already submitted this exam"
+                );
+            }
+
+            if (statuses.includes("in-progress")) {
+                throw new Error(
+                    "You already have an active session for this exam"
+                );
+            }
+
+            throw new Error(
+                "You have already attempted this exam"
+            );
+        }
+
+        transaction.create(sessionRef, sessionData);
+    });
 
     // 12. Never send correct answers to the student
     const studentQuestions = selectedQuestions.map(question => {
@@ -484,6 +516,35 @@ const getStudentExamResult = async ({
         );
     }
 
+    if (!session.enrollmentId) {
+        throw new Error("Results not released");
+    }
+
+    const enrollmentDoc = await enrollmentsCollection
+        .doc(session.enrollmentId)
+        .get();
+
+    if (!enrollmentDoc.exists) {
+        throw new Error("Results not released");
+    }
+
+    const enrollment = enrollmentDoc.data();
+
+    if (!enrollment.programId) {
+        throw new Error("Results not released");
+    }
+
+    const programDoc = await programsCollection
+        .doc(enrollment.programId)
+        .get();
+
+    if (
+        !programDoc.exists ||
+        programDoc.data().resultVisibility !== "visible"
+    ) {
+        throw new Error("Results not released");
+    }
+
     const examDoc = await examsCollection
         .doc(session.examId)
         .get();
@@ -607,6 +668,38 @@ const getExamParticipation = async (examId) => {
     };
 };
 
+const getStudentExamAttemptStatuses = async (studentId) => {
+    const sessionSnapshot = await examSessionsCollection
+        .where("studentId", "==", studentId)
+        .get();
+
+    const attemptStatuses = {};
+    const statusPriority = {
+        attempted: 1,
+        "in-progress": 2,
+        submitted: 3
+    };
+
+    sessionSnapshot.docs.forEach(doc => {
+        const session = doc.data();
+        const status = session.status === "submitted"
+            ? "submitted"
+            : session.status === "in-progress"
+                ? "in-progress"
+                : "attempted";
+        const existingStatus = attemptStatuses[session.examId];
+
+        if (
+            !existingStatus ||
+            statusPriority[status] > statusPriority[existingStatus]
+        ) {
+            attemptStatuses[session.examId] = status;
+        }
+    });
+
+    return attemptStatuses;
+};
+
 
 module.exports = {
     examSessionsCollection,
@@ -614,5 +707,6 @@ module.exports = {
     saveAnswers,
     submitExam,
     getStudentExamResult,
-    getExamParticipation
+    getExamParticipation,
+    getStudentExamAttemptStatuses
 };
