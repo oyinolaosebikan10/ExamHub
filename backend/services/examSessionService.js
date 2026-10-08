@@ -1,3 +1,4 @@
+const { createHash } = require("crypto");
 const { db } = require("../firebase/firebaseAdmin");
 const shuffleArray = require("../utils/shuffleArray");
 const { createResult } = require("./resultService");
@@ -8,6 +9,8 @@ const questionsCollection = db.collection("questions");
 const enrollmentsCollection = db.collection("enrollments");
 const studentsCollection = db.collection("students");
 const programsCollection = db.collection("programs");
+const retakeAuthorizationsCollection =
+    db.collection("examRetakeAuthorizations");
 const { isProgramActive } = require("./programService");
 
 const hasCompleteOptions = (question) => {
@@ -20,6 +23,15 @@ const hasCompleteOptions = (question) => {
             typeof question.options[key] === "string" &&
             question.options[key].trim().length > 0
         );
+};
+
+const getExamAttemptControlRef = (studentId, examId) => {
+    const controlId = createHash("sha256")
+        .update(JSON.stringify([studentId, examId]))
+        .digest("hex");
+
+    return retakeAuthorizationsCollection
+        .doc(`control_${controlId}`);
 };
 
 const toDate = (value) => {
@@ -145,6 +157,9 @@ const startExamSession = async ({
     const existingSessionQuery = examSessionsCollection
         .where("studentId", "==", studentId)
         .where("examId", "==", examId);
+    const retakeAuthorizationQuery =
+        retakeAuthorizationsCollection
+            .where("studentId", "==", studentId);
 
     // 7. Get active questions
     const questionSnapshot = await questionsCollection
@@ -216,31 +231,92 @@ const startExamSession = async ({
         updatedAt: startedAt
     };
 
+    let attemptNumber = 1;
+    let retakeAuthorizationId = null;
+
     await db.runTransaction(async transaction => {
-        const existingSessionSnapshot =
-            await transaction.get(existingSessionQuery);
+        const [existingSessionSnapshot, controlDoc] =
+            await Promise.all([
+                transaction.get(existingSessionQuery),
+                transaction.get(
+                    getExamAttemptControlRef(studentId, examId)
+                )
+            ]);
+        const existingSessions = existingSessionSnapshot.docs
+            .map(doc => doc.data());
 
-        if (!existingSessionSnapshot.empty) {
-            const statuses = existingSessionSnapshot.docs
-                .map(doc => doc.data().status);
-
-            if (statuses.includes("submitted")) {
-                throw new Error(
-                    "You have already submitted this exam"
-                );
-            }
-
-            if (statuses.includes("in-progress")) {
-                throw new Error(
-                    "You already have an active session for this exam"
-                );
-            }
-
+        if (existingSessions.some(session =>
+            session.status === "in-progress"
+        )) {
             throw new Error(
-                "You have already attempted this exam"
+                "You already have an active session for this exam"
             );
         }
 
+        if (existingSessions.length > 0) {
+            const authorizationSnapshot =
+                await transaction.get(retakeAuthorizationQuery);
+            const authorizationDoc =
+                authorizationSnapshot.docs.find(doc =>
+                    doc.data().examId === examId &&
+                    doc.data().status === "authorized"
+                );
+            const hasCompletedAttempt =
+                existingSessions.some(session =>
+                    session.status === "submitted"
+                );
+
+            if (!hasCompletedAttempt) {
+                throw new Error(
+                    "You have already attempted this exam"
+                );
+            }
+
+            if (!authorizationDoc) {
+                const hasConsumedAuthorization =
+                    authorizationSnapshot.docs.some(doc =>
+                        doc.data().examId === examId &&
+                        doc.data().status === "consumed"
+                    );
+
+                if (hasConsumedAuthorization) {
+                    throw new Error(
+                        "The retake authorization has already been consumed"
+                    );
+                }
+
+                throw new Error(
+                    "You have already submitted this exam. A retake has not been authorized."
+                );
+            }
+
+            attemptNumber = existingSessions.length + 1;
+            retakeAuthorizationId = authorizationDoc.id;
+            transaction.update(authorizationDoc.ref, {
+                status: "consumed",
+                consumedAt: startedAt,
+                consumedBySessionId: sessionRef.id,
+                attemptNumber
+            });
+        }
+
+        sessionData.attemptNumber = attemptNumber;
+        sessionData.isRetake = attemptNumber > 1;
+        sessionData.retakeAuthorizationId =
+            retakeAuthorizationId;
+        const controlRef =
+            getExamAttemptControlRef(studentId, examId);
+        const controlData =
+            controlDoc.exists ? controlDoc.data() : {};
+
+        transaction.set(controlRef, {
+            studentId,
+            examId,
+            recordType: "pair-control",
+            revision: (Number(controlData.revision) || 0) + 1,
+            createdAt: controlData.createdAt || startedAt,
+            updatedAt: startedAt
+        });
         transaction.create(sessionRef, sessionData);
     });
 
@@ -260,6 +336,8 @@ const startExamSession = async ({
         startedAt,
         expiresAt,
         durationMinutes: exam.durationMinutes,
+        attemptNumber,
+        isRetake: attemptNumber > 1,
         questions: studentQuestions
     };
 };
@@ -467,6 +545,10 @@ const submitExam = async ({
         score,
         totalMarks,
         percentage,
+        attemptNumber: latestSession.attemptNumber || 1,
+        isRetake: latestSession.isRetake === true,
+        retakeAuthorizationId:
+            latestSession.retakeAuthorizationId || null,
         submittedAt: now
     });
 
@@ -669,9 +751,15 @@ const getExamParticipation = async (examId) => {
 };
 
 const getStudentExamAttemptStatuses = async (studentId) => {
-    const sessionSnapshot = await examSessionsCollection
-        .where("studentId", "==", studentId)
-        .get();
+    const [sessionSnapshot, authorizationSnapshot] =
+        await Promise.all([
+            examSessionsCollection
+                .where("studentId", "==", studentId)
+                .get(),
+            retakeAuthorizationsCollection
+                .where("studentId", "==", studentId)
+                .get()
+        ]);
 
     const attemptStatuses = {};
     const statusPriority = {
@@ -682,22 +770,153 @@ const getStudentExamAttemptStatuses = async (studentId) => {
 
     sessionSnapshot.docs.forEach(doc => {
         const session = doc.data();
+        if (!session.examId) {
+            return;
+        }
+
         const status = session.status === "submitted"
             ? "submitted"
             : session.status === "in-progress"
                 ? "in-progress"
                 : "attempted";
-        const existingStatus = attemptStatuses[session.examId];
+        const existingStatus =
+            attemptStatuses[session.examId]?.status;
 
         if (
             !existingStatus ||
             statusPriority[status] > statusPriority[existingStatus]
         ) {
-            attemptStatuses[session.examId] = status;
+            attemptStatuses[session.examId] = {
+                status,
+                retakeAuthorized: false
+            };
+        }
+    });
+
+    authorizationSnapshot.docs.forEach(doc => {
+        const authorization = doc.data();
+
+        if (
+            authorization.status === "authorized" &&
+            attemptStatuses[authorization.examId]
+        ) {
+            attemptStatuses[authorization.examId].retakeAuthorized =
+                true;
         }
     });
 
     return attemptStatuses;
+};
+
+const authorizeStudentExamRetake = async ({
+    studentId,
+    examId,
+    adminUserId
+}) => {
+    const [studentDoc, examDoc] = await Promise.all([
+        studentsCollection.doc(studentId).get(),
+        examsCollection.doc(examId).get()
+    ]);
+
+    if (!studentDoc.exists) {
+        throw new Error("Student not found");
+    }
+
+    if (!examDoc.exists) {
+        throw new Error("Exam not found");
+    }
+
+    const student = studentDoc.data();
+    const exam = examDoc.data();
+
+    if (student.userId === adminUserId) {
+        throw new Error(
+            "You cannot authorize a retake for your own student account"
+        );
+    }
+
+    if (student.courseId !== exam.courseId) {
+        throw new Error(
+            "This exam is not available for the student's course"
+        );
+    }
+
+    const existingSessionQuery = examSessionsCollection
+        .where("studentId", "==", studentId)
+        .where("examId", "==", examId);
+    const existingAuthorizationQuery =
+        retakeAuthorizationsCollection
+            .where("studentId", "==", studentId);
+    const authorizationRef =
+        retakeAuthorizationsCollection.doc();
+    const authorizedAt = new Date();
+    const controlRef =
+        getExamAttemptControlRef(studentId, examId);
+
+    await db.runTransaction(async transaction => {
+        const [sessionSnapshot, authorizationSnapshot, controlDoc] =
+            await Promise.all([
+                transaction.get(existingSessionQuery),
+                transaction.get(existingAuthorizationQuery),
+                transaction.get(controlRef)
+            ]);
+        const sessions = sessionSnapshot.docs
+            .map(doc => doc.data());
+
+        if (sessions.some(session =>
+            session.status === "in-progress"
+        )) {
+            throw new Error(
+                "The student has an examination session in progress"
+            );
+        }
+
+        if (!sessions.some(session =>
+            session.status === "submitted"
+        )) {
+            throw new Error(
+                "The student has no completed attempt for this exam"
+            );
+        }
+
+        if (authorizationSnapshot.docs.some(doc =>
+            doc.data().examId === examId &&
+            doc.data().status === "authorized"
+        )) {
+            throw new Error(
+                "A retake is already authorized for this student and exam"
+            );
+        }
+
+        const controlData =
+            controlDoc.exists ? controlDoc.data() : {};
+        transaction.set(controlRef, {
+            studentId,
+            examId,
+            recordType: "pair-control",
+            revision: (Number(controlData.revision) || 0) + 1,
+            createdAt: controlData.createdAt || authorizedAt,
+            updatedAt: authorizedAt
+        });
+        transaction.create(authorizationRef, {
+            studentId,
+            examId,
+            authorizedBy: adminUserId,
+            status: "authorized",
+            createdAt: authorizedAt,
+            consumedAt: null,
+            consumedBySessionId: null,
+            attemptNumber: null
+        });
+    });
+
+    return {
+        authorizationId: authorizationRef.id,
+        studentId,
+        examId,
+        status: "authorized",
+        createdAt: authorizedAt
+    };
 };
 
 
@@ -708,5 +927,6 @@ module.exports = {
     submitExam,
     getStudentExamResult,
     getExamParticipation,
-    getStudentExamAttemptStatuses
+    getStudentExamAttemptStatuses,
+    authorizeStudentExamRetake
 };

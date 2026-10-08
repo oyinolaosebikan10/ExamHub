@@ -4,7 +4,8 @@ const {
     submitExam,
     getStudentExamResult,
     getExamParticipation,
-    getStudentExamAttemptStatuses
+    getStudentExamAttemptStatuses,
+    authorizeStudentExamRetake
 } = require("../services/examSessionService");
 
 const { db } = require("../firebase/firebaseAdmin");
@@ -76,7 +77,9 @@ const startExam = async (req, res) => {
         const conflictErrors = [
             "You already have an active session for this exam",
             "You have already submitted this exam",
-            "You have already attempted this exam"
+            "You have already attempted this exam",
+            "The retake authorization has already been consumed",
+            "You have already submitted this exam. A retake has not been authorized."
         ];
 
         if (conflictErrors.includes(error.message)) {
@@ -288,6 +291,91 @@ const getExamParticipationController = async (req, res) => {
     }
 };
 
+const authorizeExamRetakeController = async (req, res) => {
+    try {
+        const studentId =
+            typeof req.body?.studentId === "string"
+                ? req.body.studentId.trim()
+                : "";
+        const examId =
+            typeof req.body?.examId === "string"
+                ? req.body.examId.trim()
+                : "";
+
+        if (!studentId || !examId) {
+            return res.status(400).json({
+                success: false,
+                message: "Student ID and exam ID are required"
+            });
+        }
+
+        const authorization =
+            await authorizeStudentExamRetake({
+                studentId,
+                examId,
+                adminUserId: req.user.userId
+            });
+
+        return res.status(201).json({
+            success: true,
+            message: "Exam retake authorized successfully",
+            data: authorization
+        });
+    } catch (error) {
+        console.error("Authorize exam retake error:", error);
+
+        const notFoundErrors = [
+            "Student not found",
+            "Exam not found"
+        ];
+
+        if (notFoundErrors.includes(error.message)) {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (
+            error.message ===
+            "You cannot authorize a retake for your own student account"
+        ) {
+            return res.status(403).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        const conflictErrors = [
+            "The student has an examination session in progress",
+            "The student has no completed attempt for this exam",
+            "A retake is already authorized for this student and exam"
+        ];
+
+        if (conflictErrors.includes(error.message)) {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (
+            error.message ===
+            "This exam is not available for the student's course"
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to authorize exam retake"
+        });
+    }
+};
+
 const getAvailableExam = async (req, res) => {
     try {
         const studentSnapshot = await studentsCollection
@@ -359,7 +447,9 @@ const getAvailableExam = async (req, res) => {
                 durationMinutes: exam.durationMinutes,
                 questionCount: exam.questionCount,
                 attemptStatus:
-                    attemptStatuses[examDoc.id] || null
+                    attemptStatuses[examDoc.id]?.status || null,
+                retakeAuthorized:
+                    attemptStatuses[examDoc.id]?.retakeAuthorized === true
             });
         }
 
@@ -384,5 +474,6 @@ module.exports = {
     submitExamController,
     getStudentResultController,
     getAvailableExam,
-    getExamParticipationController
+    getExamParticipationController,
+    authorizeExamRetakeController
 };

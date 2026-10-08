@@ -6,7 +6,8 @@ const {
     submitExamController,
     getStudentResultController,
     getExamParticipationController,
-    getAvailableExam
+    getAvailableExam,
+    authorizeExamRetakeController
 } = require("../controllers/examSessionController");
 
 
@@ -28,6 +29,13 @@ router.post(
     authMiddleware,
     roleMiddleware("student"),
     startExam
+);
+
+router.post(
+    "/retake-authorizations",
+    authMiddleware,
+    roleMiddleware("admin"),
+    authorizeExamRetakeController
 );
 
 router.get(

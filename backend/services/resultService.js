@@ -14,6 +14,9 @@ const createResult = async ({
     score,
     totalMarks,
     percentage,
+    attemptNumber = 1,
+    isRetake = false,
+    retakeAuthorizationId = null,
     submittedAt
 }) => {
 
@@ -33,6 +36,9 @@ const createResult = async ({
         score,
         totalMarks,
         percentage,
+        attemptNumber,
+        isRetake,
+        retakeAuthorizationId,
         submittedAt,
         createdAt: new Date()
     };

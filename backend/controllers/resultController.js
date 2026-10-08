@@ -67,6 +67,8 @@ const results = await getAllResults({
             score: result.score,
             totalMarks: result.totalMarks,
             percentage: result.percentage,
+            attemptNumber: result.attemptNumber || 1,
+            isRetake: result.isRetake === true,
             submittedAt: result.submittedAt
         }));
 
