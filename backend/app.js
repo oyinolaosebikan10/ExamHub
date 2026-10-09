@@ -12,6 +12,8 @@ const enrollmentRoutes = require("./routes/enrollmentRoutes");
 const schoolRoutes = require("./routes/schoolRoutes");
 const programRoutes = require("./routes/programRoutes");
 const studentResultRoutes = require("./routes/studentResultRoutes");
+const adminNotificationRoutes =
+    require("./routes/adminNotificationRoutes");
 const {
     generalLimiter
 } = require("./config/rateLimiter");
@@ -38,6 +40,7 @@ app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/programs", programRoutes);
 app.use("/api/student-results", studentResultRoutes);
+app.use("/api/notifications", adminNotificationRoutes);
 
 app.get("/", (req, res) => {
     res.json({

@@ -17,6 +17,9 @@ const {
 const {
     validateStudentRegistration
 } = require("../validators/studentValidator");
+const {
+    createAdminNotification
+} = require("../services/adminNotificationService");
 
 const registerStudent = async (req, res) => {
     let userId = null;
@@ -231,6 +234,21 @@ await createEnrollment({
     programId,
     courseId
 });
+
+        try {
+            await createAdminNotification({
+                eventKey: `student-registered:${studentRef.id}`,
+                type: "student-registered",
+                title: "New student registered",
+                message: `${studentData.fullName} (${registrationNumber}) registered successfully.`,
+                targetUrl: "./students.html"
+            });
+        } catch (notificationError) {
+            console.error(
+                "Create student registration notification error:",
+                notificationError
+            );
+        }
 
         // 10. Successful response
         return res.status(201).json({

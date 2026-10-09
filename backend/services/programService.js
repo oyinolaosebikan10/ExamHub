@@ -1,4 +1,7 @@
 const { db } = require("../firebase/firebaseAdmin");
+const {
+    createAdminNotificationInTransaction
+} = require("./adminNotificationService");
 
 const programsCollection = db.collection("programs");
 const schoolsCollection = db.collection("schools");
@@ -416,7 +419,36 @@ const updateProgram = async (
             updateData.resultDownloadEnabled;
     }
 
-    await programRef.update(dataToUpdate);
+    await db.runTransaction(async (transaction) => {
+        const currentProgramDoc =
+            await transaction.get(programRef);
+
+        if (!currentProgramDoc.exists) {
+            throw new Error("Program not found");
+        }
+
+        const latestProgram = currentProgramDoc.data();
+
+        if (
+            updateData.resultVisibility === "visible" &&
+            latestProgram.resultVisibility !== "visible"
+        ) {
+            await createAdminNotificationInTransaction(
+                transaction,
+                {
+                    eventKey:
+                        `program-results-released:${programId}:${dataToUpdate.updatedAt.getTime()}`,
+                    type: "program-results-released",
+                    title: "Program results released",
+                    message: `Results for ${dataToUpdate.name || latestProgram.name || "a program"} are now visible to students.`,
+                    targetUrl: "./results.html",
+                    createdAt: dataToUpdate.updatedAt
+                }
+            );
+        }
+
+        transaction.update(programRef, dataToUpdate);
+    });
 
     const updatedDoc = await programRef.get();
 
@@ -432,6 +464,7 @@ const updateProgramLifecycle = async (programId, isActive) => {
     }
 
     const programRef = programsCollection.doc(programId);
+    const changedAt = new Date();
 
     await db.runTransaction(async (transaction) => {
         const programDoc = await transaction.get(programRef);
@@ -448,9 +481,27 @@ const updateProgramLifecycle = async (programId, isActive) => {
             );
         }
 
+        const program = programDoc.data();
+        await createAdminNotificationInTransaction(
+            transaction,
+            {
+                eventKey:
+                    `program-${isActive ? "activated" : "deactivated"}:${programId}:${changedAt.getTime()}`,
+                type: isActive
+                    ? "program-activated"
+                    : "program-deactivated",
+                title: isActive
+                    ? "Program activated"
+                    : "Program deactivated",
+                message: `${program.name || "A program"} was ${isActive ? "activated" : "deactivated"}.`,
+                targetUrl: "./programs.html",
+                createdAt: changedAt
+            }
+        );
+
         transaction.update(programRef, {
             isActive,
-            updatedAt: new Date()
+            updatedAt: changedAt
         });
     });
 

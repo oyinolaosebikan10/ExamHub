@@ -3,6 +3,9 @@ const {
     isProgramActive,
     isProgramScheduleCompleted
 } = require("./programService");
+const {
+    createAdminNotificationInTransaction
+} = require("./adminNotificationService");
 
 const examsCollection = db.collection("exams");
 const coursesCollection = db.collection("courses");
@@ -122,22 +125,38 @@ const getExamById = async (examId) => {
 
 const cancelExam = async (examId) => {
     const examRef = examsCollection.doc(examId);
+    const cancelledAt = new Date();
 
-    const examDoc = await examRef.get();
+    await db.runTransaction(async (transaction) => {
+        const examDoc = await transaction.get(examRef);
 
-    if (!examDoc.exists) {
-        throw new Error("Exam not found");
-    }
+        if (!examDoc.exists) {
+            throw new Error("Exam not found");
+        }
 
-    const exam = examDoc.data();
+        const exam = examDoc.data();
 
-    if (exam.status === "cancelled") {
-        throw new Error("Exam is already cancelled");
-    }
+        if (exam.status === "cancelled") {
+            throw new Error("Exam is already cancelled");
+        }
 
-    await examRef.update({
-        status: "cancelled",
-        updatedAt: new Date()
+        await createAdminNotificationInTransaction(
+            transaction,
+            {
+                eventKey:
+                    `exam-cancelled:${examId}:${cancelledAt.getTime()}`,
+                type: "exam-cancelled",
+                title: "Examination cancelled",
+                message: `${exam.title || "An examination"} was cancelled.`,
+                targetUrl: "./exams.html",
+                createdAt: cancelledAt
+            }
+        );
+
+        transaction.update(examRef, {
+            status: "cancelled",
+            updatedAt: cancelledAt
+        });
     });
 
     const updatedDoc = await examRef.get();

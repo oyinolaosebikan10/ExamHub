@@ -2,6 +2,9 @@ const { createHash } = require("crypto");
 const { db } = require("../firebase/firebaseAdmin");
 const shuffleArray = require("../utils/shuffleArray");
 const { createResult } = require("./resultService");
+const {
+    createAdminNotificationInTransaction
+} = require("./adminNotificationService");
 
 const examSessionsCollection = db.collection("examSessions");
 const examsCollection = db.collection("exams");
@@ -552,15 +555,46 @@ const submitExam = async ({
         submittedAt: now
     });
 
-    // Mark session as submitted.
-    await sessionRef.update({
-        status: "submitted",
-        submittedAt: now,
-        updatedAt: now,
-        score,
-        totalMarks,
-        percentage,
-        autoSubmitted
+    const examDoc = await examsCollection
+        .doc(latestSession.examId)
+        .get();
+    const examTitle = examDoc.exists
+        ? examDoc.data().title || "examination"
+        : "examination";
+
+    await db.runTransaction(async transaction => {
+        const currentSessionDoc =
+            await transaction.get(sessionRef);
+
+        if (!currentSessionDoc.exists) {
+            throw new Error("Exam session not found");
+        }
+
+        await createAdminNotificationInTransaction(
+            transaction,
+            {
+                eventKey: `exam-submitted:${sessionId}`,
+                type: autoSubmitted
+                    ? "exam-auto-submitted"
+                    : "exam-submitted",
+                title: autoSubmitted
+                    ? "Examination automatically submitted"
+                    : "Examination submitted",
+                message: `${latestSession.fullName || "A student"} ${autoSubmitted ? "was automatically submitted for" : "submitted"} ${examTitle}.`,
+                targetUrl: "./results.html",
+                createdAt: now
+            }
+        );
+
+        transaction.update(sessionRef, {
+            status: "submitted",
+            submittedAt: now,
+            updatedAt: now,
+            score,
+            totalMarks,
+            percentage,
+            autoSubmitted
+        });
     });
 
     return {
@@ -890,6 +924,18 @@ const authorizeStudentExamRetake = async ({
 
         const controlData =
             controlDoc.exists ? controlDoc.data() : {};
+        await createAdminNotificationInTransaction(
+            transaction,
+            {
+                eventKey:
+                    `exam-retake-authorized:${authorizationRef.id}`,
+                type: "exam-retake-authorized",
+                title: "Exam retake authorized",
+                message: `${student.fullName || "A student"} was authorized to retake ${exam.title || "an examination"}.`,
+                targetUrl: "./results.html",
+                createdAt: authorizedAt
+            }
+        );
         transaction.set(controlRef, {
             studentId,
             examId,
