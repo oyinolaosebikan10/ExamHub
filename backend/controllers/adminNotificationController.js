@@ -18,9 +18,17 @@ const getAdminNotificationsController = async (req, res) => {
     } catch (error) {
         console.error("Get admin notifications error:", error);
 
+        const errorCode =
+            typeof error?.code === "string" ||
+            typeof error?.code === "number"
+                ? String(error.code).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40)
+                : "";
+
         return res.status(500).json({
             success: false,
-            message: "Unable to load notifications"
+            message: errorCode
+                ? `Unable to load notifications (service error ${errorCode}).`
+                : "Unable to load notifications. Please try again."
         });
     }
 };
