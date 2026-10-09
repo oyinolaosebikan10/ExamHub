@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Student Registration | ExamHub</title>
+
+    <link rel="stylesheet" href="./css/register.css">
+</head>
+
+<body>
+
+    <main class="auth-page">
+
+        <!-- ============================================
+             LEFT SIDEBAR
+             ============================================ -->
+
+        <section class="auth-intro">
+
+            <div class="intro-content">
+
+                <!-- Brand -->
+                <a href="../index.html" class="brand">
+
+                    <span class="brand-logo">
+                        E
+                    </span>
+
+                    <span>
+                        ExamHub
+                    </span>
+
+                </a>
+
+
+                <!-- Subtle sidebar wordmark -->
+                <div
+                    class="sidebar-wordmark"
+                    aria-hidden="true"
+                >
+                    ExamHub
+                </div>
+
+
+                <!-- Intro text -->
+                <div class="intro-text">
+
+                    <span class="eyebrow">
+                        STUDENT REGISTRATION
+                    </span>
+
+                    <h1>
+                        Create your student account.
+                    </h1>
+
+                    <p>
+                        Register for your examination program
+                        and get your unique registration number.
+                    </p>
+
+                </div>
+
+
+                <!-- Registration note -->
+                <div class="intro-note">
+
+                    <span class="note-icon">
+                        ✓
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            One account, one registration.
+                        </strong>
+
+                        <p>
+                            Keep your registration number safe.
+                            You'll need it to sign in.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ============================================
+             RIGHT FORM SECTION
+             ============================================ -->
+
+        <section class="auth-form-section">
+
+            <div class="form-container">
+
+                <!-- Mobile brand -->
+                <div class="mobile-brand">
+
+                    <a href="../index.html" class="brand">
+
+                        <span class="brand-logo">
+                            E
+                        </span>
+
+                        <span>
+                            ExamHub
+                        </span>
+
+                    </a>
+
+                </div>
+
+
+                <!-- Form heading -->
+                <div class="form-heading">
+
+                    <span class="eyebrow">
+                        GET STARTED
+                    </span>
+
+                    <h2>
+                        Create your account
+                    </h2>
+
+                    <p>
+                        Enter your details to register for an
+                        examination program.
+                    </p>
+
+                </div>
+
+
+                <!-- Registration form -->
+                <form
+                    id="registerForm"
+                    novalidate
+                >
+
+                    <!-- General message -->
+                    <div
+                        id="formMessage"
+                        class="form-message"
+                    ></div>
+
+
+                    <!-- Full name -->
+                    <div class="form-group">
+
+                        <label for="fullName">
+                            Full name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="fullName"
+                            name="fullName"
+                            placeholder="Enter your first and last name"
+                            autocomplete="name"
+                        >
+
+                        <small
+                            class="field-error"
+                            id="fullNameError"
+                        ></small>
+
+                    </div>
+
+
+                    <!-- Phone number -->
+                    <div class="form-group">
+
+                        <label for="phoneNumber">
+                            Phone number
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="phoneNumber"
+                            name="phoneNumber"
+                            placeholder="e.g. 08012345678"
+                            autocomplete="tel"
+                        >
+
+                        <small
+                            class="field-error"
+                            id="phoneNumberError"
+                        ></small>
+
+                    </div>
+
+
+                    <!-- Examination program -->
+                    <div class="form-group">
+
+                        <label for="programId">
+                            Examination program
+                        </label>
+
+                        <select
+                            id="programId"
+                            name="programId"
+                        >
+
+                            <option value="">
+                                Loading programs...
+                            </option>
+
+                        </select>
+
+                        <small
+                            class="field-help"
+                            id="programHelp"
+                        >
+                            Select the program you are registering for.
+                        </small>
+
+                        <small
+                            class="field-error"
+                            id="programIdError"
+                        ></small>
+
+                    </div>
+
+
+                    <!-- Course -->
+                    <div class="form-group">
+
+                        <label for="courseId">
+                            Course
+                        </label>
+
+                        <select
+                            id="courseId"
+                            name="courseId"
+                        >
+
+                            <option value="">
+                                Select a course
+                            </option>
+
+                        </select>
+
+                        <small
+                            class="field-help"
+                            id="courseHelp"
+                        >
+                            Choose the course you want to take.
+                        </small>
+
+                        <small
+                            class="field-error"
+                            id="courseIdError"
+                        ></small>
+
+                    </div>
+
+
+                    <!-- Password -->
+                    <div class="form-group">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <div class="password-wrapper">
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Create a password"
+                                autocomplete="new-password"
+                            >
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                data-target="password"
+                            >
+                                Show
+                            </button>
+
+                        </div>
+
+                        <small class="field-help">
+                            Password must be at least 6 characters.
+                        </small>
+
+                        <small
+                            class="field-error"
+                            id="passwordError"
+                        ></small>
+
+                    </div>
+
+
+                    <!-- Confirm password -->
+                    <div class="form-group">
+
+                        <label for="confirmPassword">
+                            Confirm password
+                        </label>
+
+                        <div class="password-wrapper">
+
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                placeholder="Enter your password again"
+                                autocomplete="new-password"
+                            >
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                data-target="confirmPassword"
+                            >
+                                Show
+                            </button>
+
+                        </div>
+
+                        <small
+                            class="field-error"
+                            id="confirmPasswordError"
+                        ></small>
+
+                    </div>
+
+
+                    <!-- Submit -->
+                    <button
+                        type="submit"
+                        id="registerButton"
+                        class="primary-button"
+                    >
+                        Create account
+                    </button>
+
+                </form>
+
+
+                <!-- Login prompt -->
+                <p class="login-prompt">
+
+                    Already have an account?
+
+                    <a href="./login.html">
+                        Sign in
+                    </a>
+
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ============================================
+         SUCCESS MODAL
+         ============================================ -->
+
+    <div
+        class="modal-overlay"
+        id="successModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="successModalTitle"
+        aria-hidden="true"
+    >
+
+        <div class="success-modal">
+
+            <div class="success-icon">
+                ✓
+            </div>
+
+
+            <span class="eyebrow">
+                REGISTRATION COMPLETE
+            </span>
+
+
+            <h2 id="successModalTitle">
+                You're registered!
+            </h2>
+
+
+            <p>
+                Your student account has been created successfully.
+                Save your registration number below.
+            </p>
+
+
+            <div class="registration-number-box">
+
+                <span>
+                    Your registration number
+                </span>
+
+                <strong id="registrationNumber">
+                    —
+                </strong>
+
+            </div>
+
+            <button
+                type="button"
+                id="copyRegistrationNumberButton"
+                class="registration-copy-button"
+            >
+                Copy Registration Number
+            </button>
+
+            <p
+                class="registration-copy-feedback"
+                id="registrationCopyFeedback"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+
+            <p class="important-note">
+                Keep this number safe. You'll need it along with your
+                password to log in.
+            </p>
+
+            <label class="registration-acknowledgement">
+                <input
+                    type="checkbox"
+                    id="registrationNumberAcknowledged"
+                >
+                <span>I have copied/saved my registration number.</span>
+            </label>
+
+            <button
+                type="button"
+                id="continueToLoginButton"
+                class="primary-button modal-button"
+                disabled
+            >
+                Continue to Login
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================
+         SCRIPTS
+         ============================================ -->
+
+    <script src="./js/api.js"></script>
+    <script src="./js/register.js"></script>
+
+</body>
+</html>

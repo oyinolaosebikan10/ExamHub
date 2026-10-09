@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View student rankings from completed ExamHub assessments.">
+    <title>Leaderboard | ExamHub Administration</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="./css/admin.css">
+    <link rel="stylesheet" href="./css/reports.css">
+    <link rel="stylesheet" href="./css/leaderboard.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar" id="adminSidebar" aria-label="Admin navigation"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <main class="admin-main">
+            <header class="admin-header" id="adminHeader"></header>
+            <section class="admin-content leaderboard-page">
+                <div class="leaderboard-header">
+                    <div>
+                        <p class="leaderboard-eyebrow">Results and reporting</p>
+                        <h1>Leaderboard</h1>
+                        <p>Rank students by their best persisted result for each exam. Authorized retakes are included without duplicate student entries.</p>
+                    </div>
+                    <button type="button" class="reports-button reports-button-secondary" id="refreshLeaderboardButton">Refresh</button>
+                </div>
+
+                <p class="reports-feedback" id="leaderboardFeedback" role="status" aria-live="polite" hidden></p>
+
+                <section class="reports-summary-grid" aria-label="Leaderboard summary">
+                    <article class="reports-summary-card">
+                        <span>Ranked entries</span>
+                        <strong id="leaderboardEntryCount">—</strong>
+                        <small>Best result per student and exam</small>
+                    </article>
+                    <article class="reports-summary-card">
+                        <span>Students</span>
+                        <strong id="leaderboardStudentCount">—</strong>
+                        <small>Distinct students in view</small>
+                    </article>
+                    <article class="reports-summary-card">
+                        <span>Exams</span>
+                        <strong id="leaderboardExamCount">—</strong>
+                        <small>Exams represented in view</small>
+                    </article>
+                    <article class="reports-summary-card">
+                        <span>Top percentage</span>
+                        <strong id="leaderboardTopScore">—</strong>
+                        <small>Highest ranked result</small>
+                    </article>
+                </section>
+
+                <div class="leaderboard-filters">
+                    <label class="reports-field">
+                        <span>Search student</span>
+                        <input type="search" id="leaderboardSearch" placeholder="Name or registration number" autocomplete="off">
+                    </label>
+                    <label class="reports-field">
+                        <span>Exam</span>
+                        <select id="leaderboardExamFilter"><option value="all">All exams</option></select>
+                    </label>
+                    <label class="reports-field">
+                        <span>Course</span>
+                        <select id="leaderboardCourseFilter"><option value="all">All courses</option></select>
+                    </label>
+                    <label class="reports-field">
+                        <span>Program</span>
+                        <select id="leaderboardProgramFilter"><option value="all">All programs</option></select>
+                    </label>
+                </div>
+
+                <section class="reports-card" aria-labelledby="leaderboardTableTitle">
+                    <div class="reports-card-heading">
+                        <div>
+                            <h2 id="leaderboardTableTitle">Exam rankings</h2>
+                            <p>Equal percentages and scores share the same competition rank; ties are ordered by student name.</p>
+                        </div>
+                        <span class="reports-count" id="leaderboardCount">0 entries</span>
+                    </div>
+                    <div class="reports-state" id="leaderboardLoading" role="status">Loading persisted results...</div>
+                    <div class="reports-state reports-error" id="leaderboardError" role="alert" hidden>
+                        <strong>Leaderboard could not be loaded.</strong>
+                        <p id="leaderboardErrorMessage">Please try again.</p>
+                        <button type="button" class="reports-button reports-button-secondary" id="retryLeaderboardButton">Try again</button>
+                    </div>
+                    <div class="reports-state" id="leaderboardEmpty" hidden>
+                        <strong id="leaderboardEmptyTitle">No rankings yet</strong>
+                        <p id="leaderboardEmptyMessage">Completed exam results will appear here.</p>
+                    </div>
+                    <div class="reports-table-wrap" id="leaderboardTableWrap" hidden>
+                        <table class="reports-table leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Rank</th>
+                                    <th scope="col">Student</th>
+                                    <th scope="col">Registration number</th>
+                                    <th scope="col">Exam</th>
+                                    <th scope="col">Course</th>
+                                    <th scope="col">Program</th>
+                                    <th scope="col">Best score</th>
+                                    <th scope="col">Percentage</th>
+                                    <th scope="col">Attempt</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+    <script src="./js/admin.js"></script>
+    <script src="./js/leaderboard.js"></script>
+</body>
+</html>

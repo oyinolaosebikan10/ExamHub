@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+
+<title>Courses | ExamHub Administration</title>
+
+<link rel="stylesheet" href="../css/global.css" />
+<link rel="stylesheet" href="./css/admin.css" />
+<link rel="stylesheet" href="./css/courses.css" />
+
+
+</head>
+
+<body>
+
+<div class="admin-app">
+
+
+<aside class="admin-sidebar" id="adminSidebar">
+    <!-- Rendered by admin.js -->
+</aside>
+
+<div class="admin-main">
+
+    <header class="admin-header" id="adminHeader">
+        <!-- Rendered by admin.js -->
+    </header>
+
+    <main class="admin-content courses-page">
+
+        <!-- =========================================================
+             PAGE HEADER
+        ========================================================== -->
+
+        <section class="courses-page-header">
+
+            <div class="courses-heading-content">
+
+                <div class="breadcrumb">
+                    <span>Academic Management</span>
+                    <span class="breadcrumb-separator">/</span>
+                    <strong>Courses</strong>
+                </div>
+
+                <div>
+                    <h1>Courses</h1>
+
+                    <p>
+                        Create, update, and manage the courses available
+                        across the examination platform.
+                    </p>
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="primary-button"
+                id="openCreateCourseBtn"
+            >
+                <span class="button-icon" aria-hidden="true">+</span>
+                <span>Add Course</span>
+            </button>
+
+        </section>
+
+
+        <!-- =========================================================
+             SUMMARY
+        ========================================================== -->
+
+        <section
+            class="course-summary-grid"
+            aria-label="Course overview"
+        >
+
+            <article class="course-summary-card">
+
+                <div class="summary-card-top">
+                    <div class="summary-card-label">
+                        Total Courses
+                    </div>
+
+                    <div class="summary-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8">
+                            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"></path>
+                            <path d="M4 5.5v16"></path>
+                            <path d="M8 7h8"></path>
+                            <path d="M8 11h8"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div
+                    class="summary-card-value"
+                    id="totalCourses"
+                >
+                    0
+                </div>
+
+                <div class="summary-card-meta">
+                    All courses in the system
+                </div>
+
+            </article>
+
+
+            <article class="course-summary-card">
+
+                <div class="summary-card-top">
+                    <div class="summary-card-label">
+                        Active
+                    </div>
+
+                    <div class="summary-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8">
+                            <circle cx="12" cy="12" r="8.5"></circle>
+                            <path d="m8.5 12 2.3 2.3 4.8-5"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div
+                    class="summary-card-value"
+                    id="activeCourses"
+                >
+                    0
+                </div>
+
+                <div class="summary-card-meta">
+                    Available for registration
+                </div>
+
+            </article>
+
+
+            <article class="course-summary-card">
+
+                <div class="summary-card-top">
+                    <div class="summary-card-label">
+                        Inactive
+                    </div>
+
+                    <div class="summary-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8">
+                            <circle cx="12" cy="12" r="8.5"></circle>
+                            <path d="M8.5 8.5 15.5 15.5"></path>
+                            <path d="M15.5 8.5 8.5 15.5"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div
+                    class="summary-card-value"
+                    id="inactiveCourses"
+                >
+                    0
+                </div>
+
+                <div class="summary-card-meta">
+                    Currently unavailable
+                </div>
+
+            </article>
+
+
+            <article class="course-summary-card">
+
+                <div class="summary-card-top">
+                    <div class="summary-card-label">
+                        Course Codes
+                    </div>
+
+                    <div class="summary-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8">
+                            <path d="M7 5h10"></path>
+                            <path d="M7 9h10"></path>
+                            <path d="M7 13h6"></path>
+                            <path d="M7 17h4"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div
+                    class="summary-card-value summary-code-value"
+                    id="courseCodes"
+                >
+                    —
+                </div>
+
+                <div class="summary-card-meta">
+                    Registered course identifiers
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =========================================================
+             COURSE MANAGEMENT
+        ========================================================== -->
+
+        <section class="course-management-card">
+
+            <div class="management-header">
+
+                <div class="management-heading">
+
+                    <div class="management-title-row">
+                        <h2>All Courses</h2>
+
+                        <span
+                            class="course-count"
+                            id="courseCount"
+                        >
+                            0 courses
+                        </span>
+                    </div>
+
+                    <p>
+                        Manage course information and availability.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- Toolbar -->
+
+            <div class="course-toolbar">
+
+                <div class="course-search">
+
+                    <span
+                        class="search-icon"
+                        aria-hidden="true"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-4-4"></path>
+                        </svg>
+                    </span>
+
+                    <input
+                        type="search"
+                        id="courseSearch"
+                        placeholder="Search by course, code, ID, or slug..."
+                        autocomplete="off"
+                    />
+
+                </div>
+
+
+                <div class="course-filter">
+
+                    <label for="courseStatusFilter">
+                        Status
+                    </label>
+
+                    <select id="courseStatusFilter">
+
+                        <option value="all">
+                            All statuses
+                        </option>
+
+                        <option value="active">
+                            Active
+                        </option>
+
+                        <option value="inactive">
+                            Inactive
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="secondary-button refresh-button"
+                    id="refreshCoursesBtn"
+                >
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M20 11a8.1 8.1 0 0 0-15.5-2"></path>
+                        <path d="M4 5v4h4"></path>
+                        <path d="M4 13a8.1 8.1 0 0 0 15.5 2"></path>
+                        <path d="M20 19v-4h-4"></path>
+                    </svg>
+
+                    <span>Refresh</span>
+
+                </button>
+
+            </div>
+
+
+            <!-- Loading -->
+
+            <div
+                class="courses-loading-state"
+                id="coursesLoading"
+                aria-live="polite"
+            >
+                <div class="loading-spinner"></div>
+                <span>Loading courses...</span>
+            </div>
+
+
+            <!-- =====================================================
+                 TABLE
+            ====================================================== -->
+
+            <div
+                class="course-table-section"
+                id="coursesTableSection"
+            >
+
+                <div class="course-table-scrollbar">
+                    <div class="course-table-scrollbar-track"></div>
+                </div>
+
+                <div
+                    class="course-table-wrapper"
+                    id="coursesTableWrapper"
+                >
+
+                    <table class="course-table">
+
+                        <thead>
+                            <tr>
+
+                                <th class="course-column">
+                                    Course
+                                </th>
+
+                                <th class="code-column">
+                                    Code
+                                </th>
+
+                                <th class="id-column">
+                                    Course ID
+                                </th>
+
+                                <th class="slug-column">
+                                    Slug
+                                </th>
+
+                                <th class="description-column">
+                                    Description
+                                </th>
+
+                                <th class="status-column">
+                                    Status
+                                </th>
+
+                                <th class="updated-column">
+                                    Updated
+                                </th>
+
+                                <th class="actions-column">
+                                    Actions
+                                </th>
+
+                            </tr>
+                        </thead>
+
+                        <tbody id="coursesTableBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- Empty -->
+
+            <div
+                class="courses-empty-state hidden"
+                id="coursesEmpty"
+            >
+
+                <div class="empty-state-icon">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"></path>
+                        <path d="M4 5.5v16"></path>
+                        <path d="M8 7h8"></path>
+                        <path d="M8 11h8"></path>
+                    </svg>
+                </div>
+
+                <h3>No courses found</h3>
+
+                <p>
+                    There are no courses matching your current
+                    search or filter.
+                </p>
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="emptyCreateCourseBtn"
+                >
+                    Add Course
+                </button>
+
+            </div>
+
+
+            <!-- Error -->
+
+            <div
+                class="courses-error-state hidden"
+                id="coursesError"
+                aria-live="assertive"
+            >
+
+                <div class="error-state-icon">
+                    !
+                </div>
+
+                <h3>
+                    Unable to load courses
+                </h3>
+
+                <p id="coursesErrorText">
+                    Something went wrong while loading the courses.
+                </p>
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="retryCoursesBtn"
+                >
+                    Try Again
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+</div>
+
+<!-- ===============================================================
+     CREATE / EDIT COURSE MODAL
+================================================================ -->
+
+<div
+    class="modal-backdrop hidden"
+    id="courseModal"
+    aria-hidden="true"
+>
+
+
+<div
+    class="course-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="courseModalTitle"
+>
+
+    <div class="modal-header">
+
+        <div class="modal-heading">
+
+            <span class="modal-eyebrow">
+                Course Management
+            </span>
+
+            <h2 id="courseModalTitle">
+                Add Course
+            </h2>
+
+            <p id="courseModalDescription">
+                Create a course that can be used for examinations
+                and student registration.
+            </p>
+
+        </div>
+
+        <button
+            type="button"
+            class="modal-close"
+            id="closeCourseModalBtn"
+            aria-label="Close modal"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <form
+        id="courseForm"
+        novalidate
+    >
+
+        <input
+            type="hidden"
+            id="courseId"
+        />
+
+
+        <section class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="form-section-number">
+                    01
+                </span>
+
+                <div>
+                    <h3>Course Information</h3>
+
+                    <p>
+                        Enter the information used to identify
+                        this course.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <div class="form-group form-group-full">
+
+                    <label for="courseName">
+                        Course name
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="courseName"
+                        placeholder="e.g. Web Design & Coding"
+                        maxlength="150"
+                        required
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="courseCode">
+                        Course code
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="courseCode"
+                        placeholder="e.g. WD"
+                        maxlength="20"
+                        required
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="courseSlug">
+                        Slug
+                        <span class="field-hint">
+                            Create only
+                        </span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="courseSlug"
+                        placeholder="e.g. web-design"
+                        maxlength="100"
+                        required
+                    />
+
+                    <small class="input-help">
+                        The slug becomes the course identifier
+                        and cannot be changed after creation.
+                    </small>
+
+                </div>
+
+
+                <div class="form-group form-group-full">
+
+                    <label for="courseDescription">
+                        Description
+                    </label>
+
+                    <textarea
+                        id="courseDescription"
+                        rows="4"
+                        maxlength="1000"
+                        placeholder="Briefly describe this course..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <div
+            class="form-message hidden"
+            id="courseFormMessage"
+            role="alert"
+        ></div>
+
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                class="secondary-button"
+                id="cancelCourseBtn"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="submit"
+                class="primary-button"
+                id="saveCourseBtn"
+            >
+
+                <span id="saveCourseText">
+                    Create Course
+                </span>
+
+                <span
+                    id="saveCourseSpinner"
+                    class="save-spinner hidden"
+                    aria-hidden="true"
+                ></span>
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+</div>
+
+<!-- ===============================================================
+     VIEW COURSE MODAL
+================================================================ -->
+
+<div
+    class="modal-backdrop hidden"
+    id="viewCourseModal"
+    aria-hidden="true"
+>
+
+
+<div
+    class="course-view-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="viewCourseTitle"
+>
+
+    <div class="modal-header">
+
+        <div class="modal-heading">
+
+            <span class="view-modal-eyebrow">
+                Course Details
+            </span>
+
+            <h2 id="viewCourseTitle">
+                Course
+            </h2>
+
+            <p id="viewCourseSubtitle">
+                Course information
+            </p>
+
+        </div>
+
+        <button
+            type="button"
+            class="modal-close"
+            id="closeViewCourseModalBtn"
+            aria-label="Close modal"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="course-details-content">
+
+        <div class="course-detail-status-row">
+
+            <span
+                class="course-status-badge"
+                id="viewCourseStatus"
+            >
+                Active
+            </span>
+
+            <span
+                class="course-detail-code"
+                id="viewCourseCode"
+            >
+                —
+            </span>
+
+        </div>
+
+
+        <div class="course-detail-grid">
+
+            <div class="course-detail-item">
+                <span>Course name</span>
+                <strong id="viewCourseName">—</strong>
+            </div>
+
+
+            <div class="course-detail-item">
+                <span>Course code</span>
+                <strong id="viewCourseCodeDetail">—</strong>
+            </div>
+
+
+            <div class="course-detail-item">
+                <span>Slug</span>
+
+                <strong
+                    id="viewCourseSlug"
+                    class="detail-monospace"
+                >
+                    —
+                </strong>
+            </div>
+
+
+            <div class="course-detail-item">
+                <span>Course ID</span>
+
+                <strong
+                    id="viewCourseId"
+                    class="detail-monospace"
+                >
+                    —
+                </strong>
+            </div>
+
+
+            <div class="course-detail-item">
+                <span>Created</span>
+                <strong id="viewCourseCreated">—</strong>
+            </div>
+
+
+            <div class="course-detail-item">
+                <span>Last updated</span>
+                <strong id="viewCourseUpdated">—</strong>
+            </div>
+
+
+            <div class="course-detail-item course-detail-description">
+                <span>Description</span>
+
+                <p id="viewCourseDescription">
+                    —
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+        <button
+            type="button"
+            class="secondary-button"
+            id="viewCloseCourseBtn"
+        >
+            Close
+        </button>
+
+        <button
+            type="button"
+            class="primary-button"
+            id="viewEditCourseBtn"
+        >
+            Edit Course
+        </button>
+
+    </div>
+
+</div>
+
+
+</div>
+
+<!-- ===============================================================
+     CONFIRMATION MODAL
+================================================================ -->
+
+<div
+    class="modal-backdrop hidden"
+    id="courseConfirmModal"
+    aria-hidden="true"
+>
+
+<div
+    class="course-confirm-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="courseConfirmTitle"
+>
+
+    <div
+        class="confirm-icon"
+        id="confirmIcon"
+    >
+        !
+    </div>
+
+    <div class="confirm-content">
+
+        <span class="confirm-eyebrow">
+            Confirmation required
+        </span>
+
+        <h2 id="courseConfirmTitle">
+            Confirm action
+        </h2>
+
+        <p id="courseConfirmMessage">
+            Are you sure you want to continue?
+        </p>
+
+    </div>
+
+    <div class="modal-actions">
+
+        <button
+            type="button"
+            class="secondary-button"
+            id="cancelCourseConfirmBtn"
+        >
+            Cancel
+        </button>
+
+        <button
+            type="button"
+            class="primary-button danger-button"
+            id="confirmCourseActionBtn"
+        >
+            <span id="confirmCourseActionText">
+                Confirm
+            </span>
+
+            <span
+                id="confirmCourseSpinner"
+                class="save-spinner hidden"
+                aria-hidden="true"
+            ></span>
+        </button>
+
+    </div>
+
+</div>
+
+
+</div>
+
+<script src="./js/admin.js"></script>
+
+<script src="./js/courses.js"></script>
+
+</body>
+</html>

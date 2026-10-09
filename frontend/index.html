@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="ExamHub — a focused and secure examination platform."
+    >
+
+    <title>ExamHub — Examination Platform</title>
+
+    <link rel="stylesheet" href="./css/global.css">
+
+    <style>
+        /* =====================================================
+           LANDING PAGE
+           ===================================================== */
+
+        .landing {
+            min-height: 100vh;
+            background: var(--white);
+        }
+
+        /* ---------------- Navigation ---------------- */
+
+        .landing-nav {
+            height: 72px;
+
+            border-bottom: 1px solid var(--border);
+
+            background: rgba(255, 255, 255, 0.96);
+
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .landing-nav-inner {
+            width: min(100% - 40px, var(--container));
+            height: 100%;
+            margin-inline: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .landing-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+
+        /* ---------------- Hero ---------------- */
+
+        .hero {
+            min-height: calc(100vh - 72px);
+
+            display: flex;
+            align-items: center;
+
+            background: var(--white);
+        }
+
+        .hero-inner {
+            width: min(100% - 40px, 900px);
+            margin-inline: auto;
+
+            padding: 96px 0 100px;
+
+            text-align: center;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            margin-bottom: 22px;
+
+            color: var(--primary);
+
+            font-size: 0.78rem;
+            font-weight: 750;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .hero-eyebrow::before {
+            content: "";
+
+            width: 6px;
+            height: 6px;
+
+            border-radius: 50%;
+
+            background: var(--primary);
+        }
+
+        .hero h1 {
+            max-width: 760px;
+            margin-inline: auto;
+
+            font-size: clamp(2.6rem, 6vw, 4.8rem);
+            letter-spacing: -0.055em;
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        .hero-description {
+            max-width: 570px;
+
+            margin: 24px auto 0;
+
+            font-size: 1.05rem;
+            line-height: 1.75;
+
+            color: var(--text-secondary);
+        }
+
+        .hero-actions {
+            margin-top: 34px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .hero-actions .btn {
+            min-width: 150px;
+        }
+
+
+        /* ---------------- Trust strip ---------------- */
+
+        .hero-divider {
+            width: min(100%, 760px);
+
+            height: 1px;
+
+            margin: 72px auto 0;
+
+            background: var(--border);
+        }
+
+        .platform-points {
+            margin-top: 28px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 0;
+        }
+
+        .platform-point {
+            min-width: 150px;
+            padding: 0 24px;
+
+            color: var(--text-secondary);
+
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .platform-point + .platform-point {
+            border-left: 1px solid var(--border);
+        }
+
+        .platform-point strong {
+            display: block;
+
+            margin-bottom: 2px;
+
+            color: var(--text);
+
+            font-size: 0.92rem;
+        }
+
+
+        /* ---------------- Bottom section ---------------- */
+
+        .landing-footer {
+            padding: 22px 0;
+
+            border-top: 1px solid var(--border);
+
+            background: var(--surface-muted);
+        }
+
+        .landing-footer-inner {
+            width: min(100% - 40px, var(--container));
+            margin-inline: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            color: var(--text-muted);
+
+            font-size: 0.8rem;
+        }
+
+
+        /* ---------------- Responsive ---------------- */
+
+        @media (max-width: 650px) {
+            .landing-nav-inner {
+                width: min(100% - 24px, var(--container));
+            }
+
+            .landing-nav-actions {
+                gap: 4px;
+            }
+
+            .landing-nav-actions .btn {
+                min-height: 38px;
+                padding: 0 11px;
+
+                font-size: 0.8rem;
+            }
+
+            .hero {
+                min-height: auto;
+            }
+
+            .hero-inner {
+                width: min(100% - 28px, 900px);
+
+                padding: 76px 0 80px;
+            }
+
+            .hero h1 {
+                font-size: 2.65rem;
+            }
+
+            .hero-description {
+                font-size: 0.96rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+
+            .hero-actions .btn {
+                width: min(100%, 300px);
+            }
+
+            .hero-divider {
+                margin-top: 58px;
+            }
+
+            .platform-points {
+                flex-direction: column;
+                gap: 18px;
+            }
+
+            .platform-point {
+                min-width: 0;
+                padding: 0;
+            }
+
+            .platform-point + .platform-point {
+                border-left: 0;
+            }
+
+            .landing-footer-inner {
+                width: min(100% - 24px, var(--container));
+
+                flex-direction: column;
+                gap: 5px;
+
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="landing">
+
+        <!-- ================================================
+             NAVIGATION
+             ================================================ -->
+
+        <nav class="landing-nav">
+            <div class="landing-nav-inner">
+
+                <a href="./index.html" class="brand">
+                    <span class="brand-mark">E</span>
+                    <span>ExamHub</span>
+                </a>
+
+                <div class="landing-nav-actions">
+
+                    <a
+                        href="./login.html"
+                        class="btn btn-ghost btn-sm"
+                    >
+                        Sign in
+                    </a>
+
+                    <a
+                        href="./register.html"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Register
+                    </a>
+
+                </div>
+
+            </div>
+        </nav>
+
+
+        <!-- ================================================
+             HERO
+             ================================================ -->
+
+        <main>
+
+            <section class="hero">
+
+                <div class="hero-inner">
+
+                    <div class="hero-eyebrow">
+                        Examination platform
+                    </div>
+
+                    <h1>
+                        Your exam.
+                        <span>One focused experience.</span>
+                    </h1>
+
+                    <p class="hero-description">
+                        Take your examinations in a secure,
+                        organized environment designed to keep
+                        you focused from start to finish.
+                    </p>
+
+                    <div class="hero-actions">
+
+                        <a
+                            href="./login.html"
+                            class="btn btn-primary"
+                        >
+                            Student login
+                        </a>
+
+                        <a
+                            href="./register.html"
+                            class="btn btn-secondary"
+                        >
+                            Register as student
+                        </a>
+
+                    </div>
+
+
+                    <div class="hero-divider"></div>
+
+
+                    <div class="platform-points">
+
+                        <div class="platform-point">
+                            <strong>Secure</strong>
+                            Protected examination access
+                        </div>
+
+                        <div class="platform-point">
+                            <strong>Timed</strong>
+                            Focused examination sessions
+                        </div>
+
+                        <div class="platform-point">
+                            <strong>Organized</strong>
+                            Clear results and records
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- ================================================
+             FOOTER
+             ================================================ -->
+
+        <footer class="landing-footer">
+
+            <div class="landing-footer-inner">
+
+                <span>
+                    © 2026 ExamHub
+                </span>
+
+                <span>
+                    Examination made simple.
+                </span>
+
+            </div>
+
+        </footer>
+
+    </div>
+
+</body>
+</html>

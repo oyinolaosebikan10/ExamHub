@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Examination instructions for ExamHub.">
+    <title>Exam Instructions — ExamHub</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/instructions.css">
+</head>
+
+<body class="instructions-page">
+
+    <header class="navbar">
+        <div class="navbar-inner">
+
+            <a href="./dashboard.html" class="brand">
+                <span class="brand-mark">E</span>
+                <span>ExamHub</span>
+            </a>
+
+            <a href="./dashboard.html" class="btn btn-ghost btn-sm">
+                ← Dashboard
+            </a>
+
+        </div>
+    </header>
+
+    <main class="instructions-main">
+
+        <div class="container">
+
+            <div class="instructions-heading">
+                <span class="badge badge-primary">Before you begin</span>
+                <h1>Examination instructions</h1>
+                <p>
+                    Please read the instructions carefully before starting your examination.
+                </p>
+            </div>
+
+            <div id="instructionsError" class="alert alert-danger hidden"></div>
+
+            <section id="instructionsContent" class="instructions-content hidden">
+
+                <div class="card exam-summary-card">
+                    <div class="card-body">
+
+                        <div>
+                            <p class="summary-label">Examination</p>
+                            <h2 id="examTitle">—</h2>
+                        </div>
+
+                        <div class="exam-meta">
+                            <div>
+                                <span class="meta-label">Duration</span>
+                                <strong id="examDuration">—</strong>
+                            </div>
+
+                            <div>
+                                <span class="meta-label">Questions</span>
+                                <strong id="examQuestionCount">—</strong>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Important instructions</h3>
+                    </div>
+
+                    <div class="card-body">
+
+                        <ul class="instruction-list">
+                            <li>
+                                Your examination has a fixed time limit.
+                            </li>
+
+                            <li>
+                                The timer begins immediately when you start the examination.
+                            </li>
+
+                            <li>
+                                Your answers are saved while you work.
+                            </li>
+
+                            <li>
+                                When the examination time expires, your examination will be submitted automatically.
+                            </li>
+
+                            <li>
+                                Make sure you have a stable internet connection before beginning.
+                            </li>
+
+                            <li>
+                                Do not refresh or close the examination page unnecessarily.
+                            </li>
+
+                            <li>
+                                Once submitted, your examination cannot be resumed.
+                            </li>
+                        </ul>
+
+                    </div>
+                </div>
+
+                <div class="instructions-confirmation">
+
+                    <label class="confirmation-check">
+                        <input type="checkbox" id="confirmInstructions">
+                        <span>
+                            I have read and understood the examination instructions.
+                        </span>
+                    </label>
+
+                    <button
+                        type="button"
+                        id="startExamButton"
+                        class="btn btn-primary"
+                        disabled
+                    >
+                        Start examination
+                    </button>
+
+                </div>
+
+            </section>
+
+            <div id="instructionsLoading" class="instructions-loading">
+                <span class="spinner"></span>
+                <span>Loading examination information...</span>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="instructions-footer">
+        <div class="container">
+            <p>ExamHub · Examination Platform</p>
+        </div>
+    </footer>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/instructions.js"></script>
+
+</body>
+</html>

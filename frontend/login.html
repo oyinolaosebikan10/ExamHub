@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="Sign in to ExamHub and access your examination dashboard."
+    >
+
+    <title>Sign In — ExamHub</title>
+
+    <link rel="stylesheet" href="./css/global.css">
+    <link rel="stylesheet" href="./css/auth.css">
+</head>
+
+<body>
+
+    <main class="auth-page">
+
+        <div class="auth-container">
+
+            <a href="./index.html" class="brand auth-brand">
+                <span class="brand-mark">E</span>
+                <span>ExamHub</span>
+            </a>
+
+            <div class="auth-card">
+
+                <div class="auth-header">
+                    <h1>Sign in</h1>
+                    <p>Access your examination dashboard.</p>
+                </div>
+
+                <div id="loginError" class="alert alert-danger hidden"></div>
+
+                <form id="loginForm">
+
+                    <div class="form-group">
+                        <label
+                            for="loginIdentifier"
+                            class="form-label"
+                        >
+                            Registration number
+                        </label>
+
+                        <input
+                            type="text"
+                            id="loginIdentifier"
+                            class="form-control"
+                            placeholder="e.g. OO/WD/4827"
+                            autocomplete="username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+
+                        <label
+                            for="loginPassword"
+                            class="form-label"
+                        >
+                            Password
+                        </label>
+
+                        <div class="password-field">
+
+                            <input
+                                type="password"
+                                id="loginPassword"
+                                class="form-control"
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                class="password-toggle"
+                            >
+                                Show
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="loginButton"
+                        class="btn btn-primary auth-submit"
+                    >
+                        Sign in
+                    </button>
+
+                </form>
+
+                <div class="auth-footer">
+                    <span>Don't have an account?</span>
+                    <a href="./register.html">Register as a student</a>
+                </div>
+
+            </div>
+
+            <a href="./index.html" class="auth-back">
+                ← Back to ExamHub
+            </a>
+
+        </div>
+
+    </main>
+
+    <script src="./js/api.js"></script>
+    <script src="./js/auth.js"></script>
+
+</body>
+</html>

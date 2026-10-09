@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ExamHub examination.">
+    <title>Examination — ExamHub</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/exam.css">
+</head>
+
+<body class="exam-page">
+
+<header class="exam-header">
+    <div class="exam-header-inner">
+
+        <a href="#" class="brand">
+            <span class="brand-mark">E</span>
+            <span>ExamHub</span>
+        </a>
+
+        <div class="exam-header-center">
+            <span id="examTitle">Examination</span>
+        </div>
+
+        <div class="exam-timer" id="examTimer">
+            20:00
+        </div>
+
+    </div>
+</header>
+
+<main class="exam-main">
+
+    <div class="exam-layout">
+
+        <section class="exam-question-area">
+
+            <div class="question-top">
+                <div>
+                    <span class="question-label">Question</span>
+                    <strong id="questionNumber">1</strong>
+                    <span id="questionTotal">of 30</span>
+                </div>
+
+                <span id="saveStatus" class="save-status">
+                    Saved
+                </span>
+            </div>
+
+            <div class="question-card">
+
+                <h1 id="questionText">
+                    Loading question...
+                </h1>
+
+                <div id="optionsContainer" class="options-container"></div>
+
+            </div>
+
+            <div class="question-actions">
+
+                <button
+                    type="button"
+                    id="previousButton"
+                    class="btn btn-secondary"
+                >
+                    ← Previous
+                </button>
+
+                <button
+                    type="button"
+                    id="nextButton"
+                    class="btn btn-primary"
+                >
+                    Next →
+                </button>
+
+            </div>
+
+        </section>
+
+        <aside class="question-sidebar">
+
+            <div class="sidebar-card">
+
+                <div class="sidebar-header">
+                    <h3>Questions</h3>
+                    <span id="answeredCount">0/30</span>
+                </div>
+
+                <div
+                    id="questionNavigator"
+                    class="question-navigator"
+                ></div>
+
+                <div class="sidebar-divider"></div>
+
+                <div class="sidebar-note">
+                    <span class="status-dot"></span>
+                    <span>Answered</span>
+                </div>
+
+                <button
+                    type="button"
+                    id="submitExamButton"
+                    class="btn btn-primary submit-button"
+                >
+                    Submit examination
+                </button>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</main>
+
+<div id="submitModal" class="modal hidden">
+
+    <div class="modal-overlay"></div>
+
+    <div class="modal-card">
+
+        <h2>Submit examination?</h2>
+
+        <p>
+            Are you sure you want to submit your examination?
+            You will not be able to change your answers afterward.
+        </p>
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                id="cancelSubmitButton"
+                class="btn btn-secondary"
+            >
+                Continue exam
+            </button>
+
+            <button
+                type="button"
+                id="confirmSubmitButton"
+                class="btn btn-primary"
+            >
+                Submit examination
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/exam.js"></script>
+
+</body>
+</html>

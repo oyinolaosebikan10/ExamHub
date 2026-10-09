@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Results | ExamHub Administration</title>
+
+    <link rel="stylesheet" href="../css/global.css" />
+    <link rel="stylesheet" href="./css/admin.css" />
+    <link rel="stylesheet" href="./css/results.css" />
+</head>
+
+<body>
+    <div class="admin-app">
+        <aside class="admin-sidebar" id="adminSidebar">
+            <!-- Rendered by admin.js -->
+        </aside>
+
+        <div class="admin-main">
+            <header class="admin-header" id="adminHeader">
+                <!-- Rendered by admin.js -->
+            </header>
+
+            <main class="admin-content results-page">
+                <section class="results-page-header">
+                    <div class="results-heading-content">
+                        <div class="results-breadcrumb">
+                            <span>Academic Records</span>
+                            <span class="breadcrumb-separator">/</span>
+                            <strong>Results</strong>
+                        </div>
+
+                        <h1>Results</h1>
+                        <p>
+                            Review examination outcomes, performance trends, and student results
+                            for all completed assessments.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="secondary-button refresh-button"
+                        id="refreshResultsBtn"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.8" aria-hidden="true">
+                            <path d="M20 7v5h-5"></path>
+                            <path d="M4.9 9a7.5 7.5 0 0 1 12.5-2L20 12"></path>
+                            <path d="M4 17v-5h5"></path>
+                            <path d="M19.1 15a7.5 7.5 0 0 1-12.5 2L4 12"></path>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </section>
+
+                <section class="results-summary-grid" aria-label="Results overview">
+                    <article class="results-summary-card">
+                        <div class="summary-card-label">Total Results</div>
+                        <div class="summary-card-value" id="totalResults">—</div>
+                        <div class="summary-card-meta">All submitted outcomes</div>
+                    </article>
+
+                    <article class="results-summary-card">
+                        <div class="summary-card-label">Average Score</div>
+                        <div class="summary-card-value" id="averageScore">—</div>
+                        <div class="summary-card-meta">Mean percentage across results</div>
+                    </article>
+
+                    <article class="results-summary-card">
+                        <div class="summary-card-label">Highest Score</div>
+                        <div class="summary-card-value" id="highestScore">—</div>
+                        <div class="summary-card-meta">Best recorded percentage</div>
+                    </article>
+
+                    <article class="results-summary-card">
+                        <div class="summary-card-label">Lowest Score</div>
+                        <div class="summary-card-value" id="lowestScore">—</div>
+                        <div class="summary-card-meta">Lowest recorded percentage</div>
+                    </article>
+                </section>
+
+                <section class="results-management-card" aria-labelledby="resultsTableTitle">
+                    <div class="management-header">
+                        <div class="management-heading">
+                            <div class="management-title-row">
+                                <h2 id="resultsTableTitle">All Results</h2>
+                                <span class="results-count" id="resultsCount">0 results</span>
+                            </div>
+                            <p>Search results and inspect detailed performance records.</p>
+                        </div>
+                    </div>
+
+                    <div class="results-toolbar">
+                        <div class="results-search">
+                            <span class="search-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="11" cy="11" r="7"></circle>
+                                    <path d="m20 20-4-4"></path>
+                                </svg>
+                            </span>
+                            <input
+                                type="search"
+                                id="resultSearch"
+                                placeholder="Search student, registration number, exam, or course..."
+                                autocomplete="off"
+                                aria-label="Search results"
+                            />
+                        </div>
+
+                        <div class="results-filter">
+                            <label for="resultExamFilter">Exam</label>
+                            <select id="resultExamFilter" aria-label="Filter results by exam">
+                                <option value="all">All exams</option>
+                            </select>
+                        </div>
+
+                        <div class="results-filter">
+                            <label for="resultCourseFilter">Course</label>
+                            <select id="resultCourseFilter" aria-label="Filter results by course">
+                                <option value="all">All courses</option>
+                            </select>
+                        </div>
+
+                        <div class="results-filter">
+                            <label for="resultProgramFilter">Program</label>
+                            <select id="resultProgramFilter" aria-label="Filter results by program">
+                                <option value="all">All programs</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="results-loading-state" id="resultsLoading" role="status">
+                        <span class="loading-spinner" aria-hidden="true"></span>
+                        <span>Loading results...</span>
+                    </div>
+
+                    <div class="results-error-state hidden" id="resultsError" role="alert">
+                        <div class="empty-state-icon" aria-hidden="true">!</div>
+                        <h3>Unable to load results</h3>
+                        <p id="resultsErrorMessage">We could not retrieve the latest result records.</p>
+                        <button type="button" class="secondary-button" id="retryResultsBtn">
+                            Try Again
+                        </button>
+                    </div>
+
+                    <div class="results-empty-state hidden" id="resultsEmpty">
+                        <div class="empty-state-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.7">
+                                <path d="M7 8.5A4.5 4.5 0 0 1 11.5 4h1A4.5 4.5 0 0 1 17 8.5V10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V8.5Z"></path>
+                                <path d="M5 10h14v7.5A2.5 2.5 0 0 1 16.5 20h-9A2.5 2.5 0 0 1 5 17.5V10Z"></path>
+                                <path d="M9 14h6"></path>
+                            </svg>
+                        </div>
+                        <h3 id="resultsEmptyTitle">No results found</h3>
+                        <p id="resultsEmptyMessage">There are no saved results for the current filters.</p>
+                        <button type="button" class="secondary-button hidden" id="clearResultsFiltersBtn">
+                            Clear search and filters
+                        </button>
+                    </div>
+
+                    <div class="results-table-wrapper hidden" id="resultsTableWrapper">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <button type="button" class="sort-trigger" data-sort="student">
+                                            Student
+                                        </button>
+                                    </th>
+                                    <th scope="col">Registration Number</th>
+                                    <th scope="col">
+                                        <button type="button" class="sort-trigger" data-sort="exam">
+                                            Exam
+                                        </button>
+                                    </th>
+                                    <th scope="col">Attempt</th>
+                                    <th scope="col">Course</th>
+                                    <th scope="col">Program</th>
+                                    <th scope="col">
+                                        <button type="button" class="sort-trigger" data-sort="score">
+                                            Score
+                                        </button>
+                                    </th>
+                                    <th scope="col">
+                                        <button type="button" class="sort-trigger" data-sort="percentage">
+                                            Percentage
+                                        </button>
+                                    </th>
+                                    <th scope="col">
+                                        <button type="button" class="sort-trigger" data-sort="submittedAt">
+                                            Submitted At
+                                        </button>
+                                    </th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    </div>
+
+    <div class="results-modal-backdrop hidden" id="resultPreviewModal" aria-hidden="true">
+        <section class="results-modal" role="dialog" aria-modal="true" aria-labelledby="resultPreviewTitle">
+            <header class="results-modal-header">
+                <div>
+                    <span class="results-modal-eyebrow">Result details</span>
+                    <h2 id="resultPreviewTitle">Result Preview</h2>
+                </div>
+                <button type="button" class="modal-close-button" id="closeResultPreviewButton" aria-label="Close result preview">
+                    ×
+                </button>
+            </header>
+
+            <div class="results-modal-body" id="resultPreviewBody"></div>
+
+            <div class="results-modal-actions">
+                <button type="button" class="secondary-button" id="closeResultPreviewBtn">
+                    Close
+                </button>
+                <button type="button" class="primary-button" id="downloadResultPdfBtn">
+                    Download PDF
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <div
+        class="results-modal-backdrop hidden"
+        id="retakeConfirmationModal"
+        aria-hidden="true"
+    >
+        <section
+            class="results-modal results-confirmation-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="retakeConfirmationTitle"
+        >
+            <header class="results-modal-header">
+                <div>
+                    <span class="results-modal-eyebrow">Student examination</span>
+                    <h2 id="retakeConfirmationTitle">Allow exam retake?</h2>
+                </div>
+                <button
+                    type="button"
+                    class="modal-close-button"
+                    id="closeRetakeConfirmationButton"
+                    aria-label="Close retake confirmation"
+                >
+                    ×
+                </button>
+            </header>
+            <div class="results-modal-body">
+                <p id="retakeConfirmationMessage">
+                    Confirm that this student may take this exam again.
+                </p>
+                <p
+                    class="retake-confirmation-error hidden"
+                    id="retakeConfirmationError"
+                    role="alert"
+                ></p>
+            </div>
+            <div class="results-modal-actions">
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelRetakeConfirmationButton"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="confirmRetakeAuthorizationButton"
+                >
+                    Allow retake
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <div
+        class="retake-toast hidden"
+        id="retakeAuthorizationToast"
+        role="status"
+        aria-live="polite"
+    ></div>
+
+    <script src="./js/admin.js"></script>
+    <script src="./js/results.js"></script>
+</body>
+</html>

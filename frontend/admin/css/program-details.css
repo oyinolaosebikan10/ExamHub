@@ -1,0 +1,681 @@
+/* =========================================================
+   PROGRAM DETAILS PAGE
+   ========================================================= */
+
+.program-details-page {
+    width: 100%;
+    max-width: 1280px;
+
+    margin: 0 auto;
+
+    padding: 30px 32px 50px;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.program-details-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    margin-bottom: 26px;
+}
+
+.program-details-heading {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+.back-button {
+    width: fit-content;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: var(--muted);
+
+    font-size: 11px;
+    font-weight: 700;
+
+    transition:
+        color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.back-button:hover {
+    color: var(--primary);
+}
+
+.back-button span:first-child {
+    font-size: 17px;
+    line-height: 1;
+}
+
+.program-title-block {
+    min-width: 0;
+}
+
+.program-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 10px;
+}
+
+.program-title-row h1 {
+    min-width: 0;
+
+    font-size: 27px;
+    line-height: 1.2;
+
+    letter-spacing: -0.035em;
+
+    overflow-wrap: anywhere;
+}
+
+.program-title-block > p {
+    max-width: 700px;
+
+    margin-top: 7px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.program-header-actions {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+/* =========================================================
+   STATES
+   ========================================================= */
+
+.program-state-card {
+    width: 100%;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius-lg);
+
+    box-shadow: var(--shadow-sm);
+}
+
+
+/* =========================================================
+   OVERVIEW CARD
+   ========================================================= */
+
+.program-overview-card {
+    min-height: 120px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 30px;
+
+    padding: 24px 26px;
+
+    margin-bottom: 20px;
+}
+
+.program-overview-main {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+}
+
+.program-overview-icon {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 12px;
+
+    background: var(--primary-soft);
+
+    color: var(--primary);
+
+    font-size: 17px;
+    font-weight: 850;
+}
+
+.program-overview-text {
+    min-width: 0;
+}
+
+.program-overview-label {
+    display: block;
+
+    margin-bottom: 2px;
+
+    color: var(--muted);
+
+    font-size: 9px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.program-overview-text h2 {
+    max-width: 480px;
+
+    font-size: 19px;
+    line-height: 1.3;
+
+    letter-spacing: -0.025em;
+
+    overflow-wrap: anywhere;
+}
+
+.program-overview-meta {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(120px, 1fr));
+
+    gap: 28px;
+
+    flex-shrink: 0;
+}
+
+.overview-meta-item {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.overview-meta-label {
+    margin-bottom: 4px;
+
+    color: var(--muted);
+
+    font-size: 9px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.overview-meta-item strong {
+    color: var(--text);
+
+    font-size: 11px;
+    font-weight: 700;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.program-title-row .status-badge {
+    flex-shrink: 0;
+}
+
+.program-status-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+
+.program-status-label {
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.program-status-group .status-badge {
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   MAIN GRID
+   ========================================================= */
+
+.program-details-grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 20px;
+}
+
+
+/* =========================================================
+   DETAIL CARDS
+   ========================================================= */
+
+.detail-card {
+    min-width: 0;
+
+    padding: 23px 24px;
+}
+
+.detail-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding-bottom: 17px;
+
+    margin-bottom: 3px;
+
+    border-bottom: 1px solid var(--border-light);
+}
+
+.detail-card-eyebrow {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: var(--muted);
+
+    font-size: 9px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.detail-card-header h2 {
+    font-size: 15px;
+
+    line-height: 1.3;
+
+    letter-spacing: -0.02em;
+}
+
+
+/* =========================================================
+   INFORMATION LIST
+   ========================================================= */
+
+.info-list {
+    width: 100%;
+}
+
+.info-row {
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 10px 0;
+
+    border-bottom: 1px solid var(--border-light);
+}
+
+.info-row:last-child {
+    border-bottom: 0;
+}
+
+.info-label {
+    color: var(--muted);
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.info-value {
+    max-width: 60%;
+
+    color: var(--text-secondary);
+
+    font-size: 11px;
+    font-weight: 700;
+
+    text-align: right;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   RESULT SETTINGS
+   ========================================================= */
+
+.result-settings-list {
+    width: 100%;
+}
+
+.result-setting-row {
+    min-height: 67px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 13px 0;
+
+    border-bottom: 1px solid var(--border-light);
+}
+
+.result-setting-row:last-child {
+    border-bottom: 0;
+}
+
+.result-setting-copy {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.result-setting-copy strong {
+    color: var(--text);
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.result-setting-copy span {
+    margin-top: 3px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+
+    line-height: 1.45;
+}
+
+.result-setting-row .status-badge {
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   SCHEDULE
+   ========================================================= */
+
+.schedule-list {
+    position: relative;
+
+    padding: 8px 0 2px;
+}
+
+.schedule-list::before {
+    content: "";
+
+    position: absolute;
+
+    top: 19px;
+    bottom: 19px;
+    left: 6px;
+
+    width: 1px;
+
+    background: var(--border);
+}
+
+.schedule-item {
+    position: relative;
+
+    min-height: 53px;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 14px;
+
+    padding: 9px 0;
+}
+
+.schedule-marker {
+    position: relative;
+
+    width: 13px;
+    height: 18px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    justify-content: center;
+
+    z-index: 1;
+}
+
+.schedule-marker span {
+    width: 7px;
+    height: 7px;
+
+    margin-top: 4px;
+
+    border-radius: 50%;
+
+    background: var(--surface);
+
+    border: 2px solid var(--primary);
+}
+
+.schedule-content {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.schedule-label {
+    color: var(--muted);
+
+    font-size: 9px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.schedule-content strong {
+    margin-top: 2px;
+
+    color: var(--text-secondary);
+
+    font-size: 11px;
+    font-weight: 700;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.description-card {
+    grid-column: 1 / -1;
+}
+
+.program-description {
+    min-height: 90px;
+
+    padding-top: 17px;
+
+    color: var(--text-secondary);
+
+    font-size: 12px;
+
+    line-height: 1.75;
+
+    white-space: pre-wrap;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .program-details-page {
+        padding: 26px 22px 45px;
+    }
+
+    .program-overview-card {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .program-overview-meta {
+        width: 100%;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 20px;
+    }
+
+}
+
+
+@media (max-width: 850px) {
+
+    .program-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .description-card {
+        grid-column: auto;
+    }
+
+    .program-details-header {
+        flex-direction: column;
+    }
+
+    .program-header-actions {
+        width: 100%;
+    }
+
+    .program-header-actions .btn {
+        width: 100%;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .program-details-page {
+        padding: 22px 16px 35px;
+    }
+
+    .program-title-row h1 {
+        font-size: 23px;
+    }
+
+    .program-overview-card {
+        padding: 20px;
+    }
+
+    .program-overview-meta {
+        grid-template-columns: 1fr 1fr;
+
+        gap: 16px;
+    }
+
+    .detail-card {
+        padding: 20px;
+    }
+
+}
+
+
+@media (max-width: 450px) {
+
+    .program-overview-main {
+        align-items: flex-start;
+    }
+
+    .program-overview-icon {
+        width: 42px;
+        height: 42px;
+
+        border-radius: 10px;
+    }
+
+    .program-overview-text h2 {
+        font-size: 17px;
+    }
+
+    .program-overview-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .info-row {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 4px;
+    }
+
+    .info-value {
+        max-width: 100%;
+
+        text-align: left;
+    }
+
+    .result-setting-row {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 9px;
+    }
+
+}

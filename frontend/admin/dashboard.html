@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="ExamHub administration dashboard"
+    >
+
+    <title>Dashboard | ExamHub Admin</title>
+
+    <link
+        rel="stylesheet"
+        href="./css/admin.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="./css/dashboard.css"
+    >
+
+</head>
+
+
+<body>
+
+    <div class="admin-layout">
+
+
+        <!-- =====================================================
+             SIDEBAR
+             ===================================================== -->
+
+        <aside
+            class="admin-sidebar"
+            id="adminSidebar"
+        >
+        </aside>
+
+
+        <!-- Mobile overlay -->
+
+        <div
+            class="sidebar-overlay"
+            id="sidebarOverlay"
+        ></div>
+
+
+        <!-- =====================================================
+             MAIN
+             ===================================================== -->
+
+        <main class="admin-main">
+
+
+            <!-- =================================================
+                 HEADER
+                 ================================================= -->
+
+            <header
+                class="admin-header"
+                id="adminHeader"
+            >
+            </header>
+
+
+            <!-- =================================================
+                 CONTENT
+                 ================================================= -->
+
+            <section class="admin-content">
+
+
+                <!-- Page introduction -->
+
+                <div class="page-intro">
+
+                    <div>
+
+                        <h2>
+                            Dashboard
+                        </h2>
+
+                        <p>
+                            Overview of your examination platform.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     STATISTICS
+                     ================================================= -->
+
+                <section
+                    class="dashboard-stats"
+                    id="dashboardStats"
+                >
+
+
+                    <!-- Students -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-card-top">
+
+                            <span class="stat-label">
+                                Students
+                            </span>
+
+                            <span class="stat-icon">
+                                ♙
+                            </span>
+
+                        </div>
+
+                        <strong
+                            class="stat-value"
+                            id="studentsCount"
+                        >
+                            —
+                        </strong>
+
+                        <span class="stat-description">
+                            Registered students
+                        </span>
+
+                    </div>
+
+
+                    <!-- Programs -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-card-top">
+
+                            <span class="stat-label">
+                                Programs
+                            </span>
+
+                            <span class="stat-icon">
+                                ▤
+                            </span>
+
+                        </div>
+
+                        <strong
+                            class="stat-value"
+                            id="programsCount"
+                        >
+                            —
+                        </strong>
+
+                        <span class="stat-description">
+                            Examination programs
+                        </span>
+
+                    </div>
+
+
+                    <!-- Courses -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-card-top">
+
+                            <span class="stat-label">
+                                Courses
+                            </span>
+
+                            <span class="stat-icon">
+                                ◫
+                            </span>
+
+                        </div>
+
+                        <strong
+                            class="stat-value"
+                            id="coursesCount"
+                        >
+                            —
+                        </strong>
+
+                        <span class="stat-description">
+                            Active courses
+                        </span>
+
+                    </div>
+
+
+                    <!-- Exams -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-card-top">
+
+                            <span class="stat-label">
+                                Exams
+                            </span>
+
+                            <span class="stat-icon">
+                                ▣
+                            </span>
+
+                        </div>
+
+                        <strong
+                            class="stat-value"
+                            id="examsCount"
+                        >
+                            —
+                        </strong>
+
+                        <span class="stat-description">
+                            Created examinations
+                        </span>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     RECENT INFORMATION
+                     ================================================= -->
+
+                <section class="dashboard-grid">
+
+
+                    <!-- Recent exams -->
+
+                    <div class="dashboard-card">
+
+                        <div class="dashboard-card-header">
+
+                            <div>
+
+                                <h3>
+                                    Recent Exams
+                                </h3>
+
+                                <p>
+                                    Latest examinations created.
+                                </p>
+
+                            </div>
+
+                            <a
+                                href="./exams.html"
+                                class="text-link"
+                            >
+                                View all
+                            </a>
+
+                        </div>
+
+
+                        <div
+                            id="recentExams"
+                            class="dashboard-list"
+                        >
+
+                            <div class="loading-state">
+                                Loading exams...
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Recent results -->
+
+                    <div class="dashboard-card">
+
+                        <div class="dashboard-card-header">
+
+                            <div>
+
+                                <h3>
+                                    Recent Results
+                                </h3>
+
+                                <p>
+                                    Latest submitted examinations.
+                                </p>
+
+                            </div>
+
+                            <a
+                                href="./results.html"
+                                class="text-link"
+                            >
+                                View all
+                            </a>
+
+                        </div>
+
+
+                        <div
+                            id="recentResults"
+                            class="dashboard-list"
+                        >
+
+                            <div class="loading-state">
+                                Loading results...
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     QUICK ACTIONS
+                     ================================================= -->
+
+                <section class="dashboard-card quick-actions-card">
+
+
+                    <div class="dashboard-card-header">
+
+                        <div>
+
+                            <h3>
+                                Quick Actions
+                            </h3>
+
+                            <p>
+                                Common administration tasks.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="quick-actions">
+
+
+                        <a
+                            href="./programs.html"
+                            class="quick-action"
+                        >
+
+                            <span class="quick-action-icon">
+                                +
+                            </span>
+
+                            <span>
+
+                                <strong>
+                                    Create Program
+                                </strong>
+
+                                <small>
+                                    Set up a new examination program
+                                </small>
+
+                            </span>
+
+                        </a>
+
+
+                        <a
+                            href="./students.html"
+                            class="quick-action"
+                        >
+
+                            <span class="quick-action-icon">
+                                ♙
+                            </span>
+
+                            <span>
+
+                                <strong>
+                                    Manage Students
+                                </strong>
+
+                                <small>
+                                    View and manage registered students
+                                </small>
+
+                            </span>
+
+                        </a>
+
+
+                        <a
+                            href="./questions.html"
+                            class="quick-action"
+                        >
+
+                            <span class="quick-action-icon">
+                                ?
+                            </span>
+
+                            <span>
+
+                                <strong>
+                                    Question Bank
+                                </strong>
+
+                                <small>
+                                    Manage examination questions
+                                </small>
+
+                            </span>
+
+                        </a>
+
+
+                        <a
+                            href="./reports.html"
+                            class="quick-action"
+                        >
+
+                            <span class="quick-action-icon">
+                                ▥
+                            </span>
+
+                            <span>
+
+                                <strong>
+                                    Reports
+                                </strong>
+
+                                <small>
+                                    Generate examination reports
+                                </small>
+
+                            </span>
+
+                        </a>
+
+
+                    </div>
+
+                </section>
+
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+         ========================================================= -->
+
+    <script src="./js/admin.js"></script>
+
+    <script src="./js/dashboard.js"></script>
+
+</body>
+
+</html>

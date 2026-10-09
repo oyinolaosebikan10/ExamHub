@@ -1,0 +1,994 @@
+/* ============================================
+   ExamHub — Student Registration
+   ============================================ */
+
+:root {
+    --blue: #1d4ed8;
+    --blue-hover: #1e40af;
+    --blue-soft: #eff6ff;
+
+    --navy: #0b1220;
+    --text: #172033;
+    --muted: #64748b;
+
+    --bg: #f5f7fb;
+    --white: #ffffff;
+    --border: #e2e8f0;
+
+    --danger: #dc2626;
+    --success: #15803d;
+}
+
+
+/* ============================================
+   RESET
+   ============================================ */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background: var(--bg);
+    color: var(--text);
+}
+
+a {
+    color: inherit;
+}
+
+
+/* ============================================
+   PAGE LAYOUT
+   ============================================ */
+
+.auth-page {
+    min-height: 100vh;
+
+    display: grid;
+    grid-template-columns: 43% 57%;
+}
+
+
+/* ============================================
+   LEFT SIDEBAR
+   ============================================ */
+
+.auth-intro {
+    position: relative;
+
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+
+    padding: 50px clamp(40px, 6vw, 90px);
+
+    background: var(--navy);
+    color: white;
+
+    overflow: hidden;
+}
+
+
+/* Small decorative detail */
+
+.auth-intro::after {
+    content: "";
+
+    position: absolute;
+
+    width: 300px;
+    height: 300px;
+
+    right: -180px;
+    bottom: -170px;
+
+    border: 1px solid rgba(59, 130, 246, 0.13);
+
+    border-radius: 50%;
+}
+
+
+.intro-content {
+    width: 100%;
+    max-width: 480px;
+
+    position: relative;
+    z-index: 1;
+}
+
+
+/* ============================================
+   BRAND
+   ============================================ */
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 20px;
+    font-weight: 750;
+
+    letter-spacing: -0.035em;
+}
+
+
+.brand-logo {
+    width: 30px;
+    height: 30px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 7px;
+
+    background: var(--blue);
+    color: white;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+
+/* ============================================
+   SIDEBAR WORDMARK
+   ============================================ */
+
+.sidebar-wordmark {
+    margin-top: 48px;
+    margin-bottom: 43px;
+
+    color: rgba(255, 255, 255, 0.055);
+
+    font-size: clamp(48px, 5vw, 70px);
+
+    font-weight: 800;
+
+    line-height: 0.9;
+
+    letter-spacing: -0.065em;
+
+    user-select: none;
+}
+
+
+/* ============================================
+   EYEBROW
+   ============================================ */
+
+.eyebrow {
+    display: inline-block;
+
+    color: var(--blue);
+
+    font-size: 11px;
+
+    font-weight: 750;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+}
+
+
+.auth-intro .eyebrow {
+    color: #60a5fa;
+}
+
+
+/* ============================================
+   INTRO TEXT
+   ============================================ */
+
+.intro-text h1 {
+    max-width: 470px;
+
+    margin-top: 14px;
+
+    color: white;
+
+    font-size: clamp(37px, 4vw, 52px);
+
+    line-height: 1.06;
+
+    letter-spacing: -0.045em;
+}
+
+
+.intro-text p {
+    max-width: 420px;
+
+    margin-top: 21px;
+
+    color: #aeb9ca;
+
+    font-size: 15px;
+
+    line-height: 1.7;
+}
+
+
+/* ============================================
+   INTRO NOTE
+   ============================================ */
+
+.intro-note {
+    max-width: 430px;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 13px;
+
+    margin-top: 45px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+
+.note-icon {
+    width: 27px;
+    height: 27px;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 7px;
+
+    background: rgba(29, 78, 216, 0.18);
+
+    color: #60a5fa;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+.intro-note strong {
+    display: block;
+
+    color: #e8edf5;
+
+    font-size: 13px;
+
+    font-weight: 650;
+}
+
+
+.intro-note p {
+    margin-top: 4px;
+
+    color: #8f9bad;
+
+    font-size: 12px;
+
+    line-height: 1.55;
+}
+
+
+/* ============================================
+   RIGHT FORM SECTION
+   ============================================ */
+
+.auth-form-section {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 45px 40px;
+
+    background: var(--white);
+}
+
+
+.form-container {
+    width: 100%;
+    max-width: 500px;
+}
+
+
+/* ============================================
+   MOBILE BRAND
+   ============================================ */
+
+.mobile-brand {
+    display: none;
+}
+
+
+/* ============================================
+   FORM HEADING
+   ============================================ */
+
+.form-heading {
+    margin-bottom: 29px;
+}
+
+
+.form-heading h2 {
+    margin-top: 9px;
+
+    color: var(--navy);
+
+    font-size: 29px;
+
+    line-height: 1.2;
+
+    letter-spacing: -0.035em;
+}
+
+
+.form-heading p {
+    max-width: 420px;
+
+    margin-top: 8px;
+
+    color: var(--muted);
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+
+/* ============================================
+   FORM
+   ============================================ */
+
+#registerForm {
+    display: flex;
+    flex-direction: column;
+
+    gap: 17px;
+}
+
+
+/* ============================================
+   FORM MESSAGE
+   ============================================ */
+
+.form-message {
+    display: none;
+
+    padding: 11px 13px;
+
+    border: 1px solid #fecaca;
+
+    border-radius: 8px;
+
+    background: #fef2f2;
+
+    color: var(--danger);
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+.form-message:not(:empty) {
+    display: block;
+}
+
+
+/* ============================================
+   FORM GROUP
+   ============================================ */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+}
+
+
+.form-group label {
+    color: #334155;
+
+    font-size: 13px;
+
+    font-weight: 650;
+}
+
+
+/* ============================================
+   INPUTS + SELECTS
+   ============================================ */
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    height: 46px;
+
+    padding: 0 13px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    outline: none;
+
+    background: white;
+
+    color: var(--text);
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+
+.form-group input::placeholder {
+    color: #94a3b8;
+}
+
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #cbd5e1;
+}
+
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--blue);
+
+    box-shadow:
+        0 0 0 3px rgba(29, 78, 216, 0.08);
+}
+
+
+/* ============================================
+   SELECT
+   ============================================ */
+
+.form-group select {
+    cursor: pointer;
+}
+
+
+/* ============================================
+   HELP TEXT
+   ============================================ */
+
+.field-help {
+    color: #94a3b8;
+
+    font-size: 11px;
+
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   ERRORS
+   ============================================ */
+
+.field-error {
+    min-height: 0;
+
+    color: var(--danger);
+
+    font-size: 11px;
+
+    line-height: 1.4;
+}
+
+
+.input-error {
+    border-color: #f87171 !important;
+
+    background: #fffafa !important;
+}
+
+
+/* ============================================
+   PASSWORD
+   ============================================ */
+
+.password-wrapper {
+    position: relative;
+}
+
+
+.password-wrapper input {
+    padding-right: 62px;
+}
+
+
+.password-toggle {
+    position: absolute;
+
+    top: 50%;
+    right: 9px;
+
+    transform: translateY(-50%);
+
+    border: 0;
+
+    padding: 5px;
+
+    background: transparent;
+
+    color: var(--blue);
+
+    font-family: inherit;
+
+    font-size: 11px;
+
+    font-weight: 650;
+
+    cursor: pointer;
+}
+
+
+.password-toggle:hover {
+    color: var(--blue-hover);
+}
+
+
+/* ============================================
+   PRIMARY BUTTON
+   ============================================ */
+
+.primary-button {
+    width: 100%;
+    min-height: 47px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+
+    border-radius: 8px;
+
+    background: var(--blue);
+
+    color: white;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+
+.primary-button:hover {
+    background: var(--blue-hover);
+
+    box-shadow:
+        0 6px 16px rgba(29, 78, 216, 0.16);
+}
+
+
+.primary-button:disabled {
+    opacity: 0.65;
+
+    cursor: not-allowed;
+
+    box-shadow: none;
+}
+
+
+/* ============================================
+   LOGIN PROMPT
+   ============================================ */
+
+.login-prompt {
+    margin-top: 21px;
+
+    text-align: center;
+
+    color: var(--muted);
+
+    font-size: 13px;
+}
+
+
+.login-prompt a {
+    color: var(--blue);
+
+    font-weight: 650;
+
+    text-decoration: none;
+}
+
+
+.login-prompt a:hover {
+    text-decoration: underline;
+}
+
+
+/* ============================================
+   SUCCESS MODAL
+   ============================================ */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(11, 18, 32, 0.55);
+
+    z-index: 1000;
+}
+
+
+.modal-overlay.active {
+    display: flex;
+}
+
+
+.success-modal {
+    width: 100%;
+    max-width: 430px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+
+    padding: 33px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 14px;
+
+    background: white;
+
+    text-align: center;
+
+    box-shadow:
+        0 20px 60px rgba(11, 18, 32, 0.18);
+}
+
+
+/* ============================================
+   SUCCESS ICON
+   ============================================ */
+
+.success-icon {
+    width: 51px;
+    height: 51px;
+
+    margin: 0 auto 16px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background: #ecfdf3;
+
+    color: var(--success);
+
+    font-size: 21px;
+
+    font-weight: 700;
+}
+
+
+.success-modal .eyebrow {
+    margin-bottom: 8px;
+}
+
+
+.success-modal h2 {
+    color: var(--navy);
+
+    font-size: 24px;
+
+    letter-spacing: -0.025em;
+}
+
+
+.success-modal > p {
+    margin-top: 9px;
+
+    color: var(--muted);
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+
+/* ============================================
+   REGISTRATION NUMBER
+   ============================================ */
+
+.registration-number-box {
+    margin: 20px 0;
+
+    padding: 16px 15px;
+
+    border: 1px solid #dbeafe;
+
+    border-radius: 9px;
+
+    background: var(--blue-soft);
+}
+
+
+.registration-number-box span {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #64748b;
+
+    font-size: 10px;
+
+    font-weight: 650;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.06em;
+}
+
+
+.registration-number-box strong {
+    color: var(--blue);
+
+    font-size: 23px;
+
+    letter-spacing: 0.04em;
+
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+
+.registration-copy-button {
+    width: 100%;
+    min-height: 42px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    background: white;
+
+    color: var(--navy);
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    font-weight: 650;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.18s ease,
+        color 0.18s ease;
+}
+
+
+.registration-copy-button:hover {
+    border-color: var(--blue);
+
+    color: var(--blue);
+}
+
+
+.registration-copy-feedback {
+    min-height: 18px;
+
+    margin: 6px 0 10px;
+
+    color: var(--success);
+
+    font-size: 12px;
+}
+
+
+.registration-copy-feedback.is-error {
+    color: #b91c1c;
+}
+
+
+.registration-acknowledgement {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+
+    margin: 0 0 16px;
+
+    color: var(--navy);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+    text-align: left;
+    cursor: pointer;
+}
+
+
+.registration-acknowledgement input {
+    width: 16px;
+    height: 16px;
+
+    flex: 0 0 auto;
+
+    margin: 1px 0 0;
+
+    accent-color: var(--blue);
+}
+
+
+.important-note {
+    margin-bottom: 19px;
+}
+
+
+/* ============================================
+   MODAL BUTTON
+   ============================================ */
+
+.modal-button {
+    min-height: 45px;
+}
+
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 900px) {
+
+    .auth-page {
+        grid-template-columns: 40% 60%;
+    }
+
+    .auth-intro {
+        padding: 40px 32px;
+    }
+
+    .sidebar-wordmark {
+        margin-top: 43px;
+        margin-bottom: 38px;
+
+        font-size: 48px;
+    }
+
+    .intro-text h1 {
+        font-size: 37px;
+    }
+
+    .auth-form-section {
+        padding: 40px 28px;
+    }
+}
+
+
+@media (max-width: 720px) {
+
+    .auth-page {
+        display: block;
+    }
+
+    .auth-intro {
+        min-height: auto;
+
+        padding: 30px 24px 35px;
+    }
+
+    .auth-intro .brand {
+        margin-bottom: 0;
+    }
+
+    .sidebar-wordmark {
+        margin-top: 35px;
+        margin-bottom: 35px;
+
+        font-size: 45px;
+    }
+
+    .intro-text h1 {
+        font-size: 34px;
+    }
+
+    .intro-text p {
+        margin-top: 16px;
+    }
+
+    .intro-note {
+        margin-top: 30px;
+    }
+
+    .auth-form-section {
+        min-height: auto;
+
+        padding: 35px 22px 45px;
+    }
+
+    .mobile-brand {
+        display: block;
+
+        margin-bottom: 38px;
+    }
+
+    .mobile-brand .brand {
+        color: var(--navy);
+    }
+
+    .mobile-brand .brand-logo {
+        color: white;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .auth-intro {
+        padding: 27px 20px 32px;
+    }
+
+    .sidebar-wordmark {
+        margin-top: 31px;
+        margin-bottom: 31px;
+
+        font-size: 40px;
+    }
+
+    .intro-text h1 {
+        font-size: 31px;
+    }
+
+    .auth-form-section {
+        padding: 30px 17px 40px;
+    }
+
+    .form-heading h2 {
+        font-size: 26px;
+    }
+
+    .success-modal {
+        padding: 27px 20px;
+    }
+}

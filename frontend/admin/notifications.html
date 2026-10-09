@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <meta
+        name="description"
+        content="Review ExamHub administration notifications."
+    >
+
+    <title>Notifications | ExamHub Administration</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="./css/admin.css">
+    <link rel="stylesheet" href="./css/notifications.css">
+</head>
+
+<body>
+    <div class="admin-layout">
+        <aside
+            class="admin-sidebar"
+            id="adminSidebar"
+            aria-label="Admin navigation"
+        ></aside>
+
+        <div
+            class="sidebar-overlay"
+            id="sidebarOverlay"
+        ></div>
+
+        <main class="admin-main">
+            <header
+                class="admin-header"
+                id="adminHeader"
+            ></header>
+
+            <section class="admin-content notifications-page">
+                <div class="notifications-page-header">
+                    <div>
+                        <p class="notifications-eyebrow">
+                            Administration
+                        </p>
+                        <h2>Notifications</h2>
+                        <p>
+                            Important activity across students, examinations, and programs.
+                        </p>
+                    </div>
+
+                    <div class="notifications-header-actions">
+                        <button
+                            type="button"
+                            class="notifications-button notifications-button-secondary"
+                            id="refreshNotificationsButton"
+                        >
+                            Refresh
+                        </button>
+                        <button
+                            type="button"
+                            class="notifications-button notifications-button-primary"
+                            id="markAllNotificationsReadButton"
+                            disabled
+                        >
+                            Mark all as read
+                        </button>
+                    </div>
+                </div>
+
+                <p
+                    class="notifications-feedback"
+                    id="notificationsFeedback"
+                    role="status"
+                    aria-live="polite"
+                    hidden
+                ></p>
+
+                <section
+                    class="notifications-card"
+                    aria-label="Recent notifications"
+                >
+                    <div
+                        class="notifications-loading"
+                        id="notificationsLoading"
+                        role="status"
+                    >
+                        Loading notifications...
+                    </div>
+
+                    <div
+                        class="notifications-error"
+                        id="notificationsError"
+                        role="alert"
+                        hidden
+                    >
+                        <p>Notifications could not be loaded.</p>
+                        <button
+                            type="button"
+                            class="notifications-button notifications-button-secondary"
+                            id="retryNotificationsButton"
+                        >
+                            Try again
+                        </button>
+                    </div>
+
+                    <div
+                        class="notifications-empty"
+                        id="notificationsEmpty"
+                        hidden
+                    >
+                        <strong>You're all caught up</strong>
+                        <p>New administrative activity will appear here.</p>
+                    </div>
+
+                    <div
+                        class="notifications-list"
+                        id="notificationsList"
+                        aria-live="polite"
+                    ></div>
+
+                    <p class="notifications-list-note" id="notificationsListNote" hidden>
+                        Showing the 50 most recent notifications.
+                    </p>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script src="./js/admin.js"></script>
+    <script src="./js/notifications.js"></script>
+</body>
+</html>

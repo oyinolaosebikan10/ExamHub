@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exams | ExamHub Administration</title>
+    <link rel="stylesheet" href="../css/global.css" />
+    <link rel="stylesheet" href="./css/admin.css" />
+    <link rel="stylesheet" href="./css/exams.css" />
+</head>
+<body>
+    <div class="admin-app">
+        <aside class="admin-sidebar" id="adminSidebar"></aside>
+
+        <div class="admin-main">
+            <header class="admin-header" id="adminHeader"></header>
+
+            <main class="admin-content exams-page">
+                <section class="exams-page-header">
+                    <div class="exams-heading">
+                        <div class="exams-breadcrumb">
+                            <span>Examination</span>
+                            <span aria-hidden="true">/</span>
+                            <strong>Exams</strong>
+                        </div>
+                        <h1>Exams</h1>
+                        <p>Manage configured examinations and their question, course, and program settings.</p>
+                    </div>
+                    <div class="exams-header-actions">
+                        <button type="button" class="exam-button exam-button-secondary" id="refreshExamsButton">Refresh</button>
+                        <button type="button" class="exam-button exam-button-primary" id="createExamButton">
+                            <span aria-hidden="true">+</span>
+                            <span>Create Exam</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="exam-summary-grid" aria-label="Exam overview">
+                    <article class="exam-summary-card">
+                        <span>Total Exams</span>
+                        <strong id="totalExams">—</strong>
+                        <small>All configured examinations</small>
+                    </article>
+                    <article class="exam-summary-card">
+                        <span>Active</span>
+                        <strong id="activeExams">—</strong>
+                        <small>Exam definitions marked active</small>
+                    </article>
+                    <article class="exam-summary-card">
+                        <span>Cancelled</span>
+                        <strong id="cancelledExams">—</strong>
+                        <small>Exam definitions marked cancelled</small>
+                    </article>
+                </section>
+
+                <section class="exam-management-card" aria-labelledby="examListHeading">
+                    <div class="exam-management-header">
+                        <div>
+                            <div class="exam-title-row">
+                                <h2 id="examListHeading">All Exams</h2>
+                                <span class="exam-count" id="examCount">—</span>
+                            </div>
+                            <p>Review exam configuration and manage availability.</p>
+                        </div>
+                    </div>
+
+                    <div class="exam-toolbar">
+                        <label class="exam-search">
+                            <span aria-hidden="true">⌕</span>
+                            <input
+                                type="search"
+                                id="examSearch"
+                                placeholder="Search by exam title or ID"
+                                aria-label="Search exams"
+                                autocomplete="off"
+                            />
+                        </label>
+                        <label class="exam-filter">
+                            <span>Course</span>
+                            <select id="examCourseFilter" aria-label="Filter exams by course">
+                                <option value="all">All courses</option>
+                            </select>
+                        </label>
+                        <label class="exam-filter">
+                            <span>Program</span>
+                            <select id="examProgramFilter" aria-label="Filter exams by program">
+                                <option value="all">All programs</option>
+                            </select>
+                        </label>
+                        <label class="exam-filter">
+                            <span>Status</span>
+                            <select id="examStatusFilter" aria-label="Filter exams by status">
+                                <option value="all">All statuses</option>
+                                <option value="active">Active</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="other">Other statuses</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="exam-state" id="examsLoadingState" role="status">
+                        <span class="exam-spinner" aria-hidden="true"></span>
+                        <span>Loading exams...</span>
+                    </div>
+
+                    <div class="exam-state exam-error-state" id="examsErrorState" role="alert" hidden>
+                        <span class="exam-state-icon" aria-hidden="true">!</span>
+                        <h3>Unable to load exams</h3>
+                        <p id="examsErrorMessage">We couldn't retrieve exam records. Please try again.</p>
+                        <button type="button" class="exam-button exam-button-secondary" id="retryExamsButton">Try Again</button>
+                    </div>
+
+                    <div class="exam-state exam-empty-state" id="examsEmptyState" hidden>
+                        <span class="exam-state-icon" aria-hidden="true">—</span>
+                        <h3 id="examsEmptyTitle">No exams found</h3>
+                        <p id="examsEmptyMessage">There are currently no configured exams.</p>
+                        <button type="button" class="exam-button exam-button-primary" id="emptyCreateExamButton">Create Exam</button>
+                        <button type="button" class="exam-button exam-button-secondary" id="clearExamFiltersButton" hidden>Clear search and filters</button>
+                    </div>
+
+                    <div class="exam-table-wrapper" id="examsTableWrapper" hidden>
+                        <table class="exam-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Exam</th>
+                                    <th scope="col">Course</th>
+                                    <th scope="col">Program</th>
+                                    <th scope="col">Questions</th>
+                                    <th scope="col">Duration</th>
+                                    <th scope="col">Exam Window</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Updated</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="examsTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="exam-toast" id="examToast" role="status" aria-live="polite" hidden></div>
+                </section>
+            </main>
+        </div>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    </div>
+
+    <div class="exam-modal-backdrop" id="examFormModal" aria-hidden="true" hidden>
+        <section class="exam-modal exam-form-modal" role="dialog" aria-modal="true" aria-labelledby="examFormTitle">
+            <header class="exam-modal-header">
+                <div>
+                    <span class="exam-modal-eyebrow">Exam configuration</span>
+                    <h2 id="examFormTitle">Create Exam</h2>
+                    <p>Configure the exam definition. Its availability dates come from the selected program.</p>
+                </div>
+                <button type="button" class="exam-modal-close" data-close-modal aria-label="Close dialog">×</button>
+            </header>
+
+            <form id="examForm" novalidate>
+                <div class="exam-form-body">
+                    <p class="exam-form-message" id="examFormMessage" role="alert" hidden></p>
+
+                    <label class="exam-form-field" for="examTitle">
+                        <span>Exam title <b aria-hidden="true">*</b></span>
+                        <input id="examTitle" type="text" required autocomplete="off" />
+                    </label>
+
+                    <div class="exam-form-grid">
+                        <label class="exam-form-field" for="examProgram">
+                            <span>Program <b aria-hidden="true">*</b></span>
+                            <select id="examProgram" required>
+                                <option value="">Select a program</option>
+                            </select>
+                            <small id="examProgramAvailabilityMessage" role="status" aria-live="polite" hidden></small>
+                        </label>
+                        <label class="exam-form-field" for="examCourse">
+                            <span>Course <b aria-hidden="true">*</b></span>
+                            <select id="examCourse" required>
+                                <option value="">Select a course</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="exam-form-grid">
+                        <label class="exam-form-field" for="examQuestionCount">
+                            <span>Questions per attempt <b aria-hidden="true">*</b></span>
+                            <input id="examQuestionCount" type="number" min="1" step="1" required />
+                            <small id="examQuestionPoolMessage">Select a course to see its active question pool.</small>
+                        </label>
+                        <label class="exam-form-field" for="examDuration">
+                            <span>Duration (minutes) <b aria-hidden="true">*</b></span>
+                            <input id="examDuration" type="number" min="1" step="1" required />
+                            <small>Use a positive whole number of minutes.</small>
+                        </label>
+                    </div>
+                </div>
+
+                <footer class="exam-modal-actions">
+                    <button type="button" class="exam-button exam-button-secondary" data-close-modal>Cancel</button>
+                    <button type="submit" class="exam-button exam-button-primary" id="saveExamButton">
+                        <span id="saveExamButtonText">Create Exam</span>
+                        <span class="exam-inline-spinner" id="saveExamSpinner" aria-hidden="true" hidden></span>
+                    </button>
+                </footer>
+            </form>
+        </section>
+    </div>
+
+    <div class="exam-modal-backdrop" id="examViewModal" aria-hidden="true" hidden>
+        <section class="exam-modal exam-view-modal" role="dialog" aria-modal="true" aria-labelledby="examViewTitle">
+            <header class="exam-modal-header">
+                <div>
+                    <span class="exam-modal-eyebrow">Exam details</span>
+                    <h2 id="examViewTitle">Exam</h2>
+                    <p id="examViewSubtitle"></p>
+                </div>
+                <button type="button" class="exam-modal-close" data-close-modal aria-label="Close dialog">×</button>
+            </header>
+            <div class="exam-view-state" id="examViewLoading" role="status" hidden>
+                <span class="exam-spinner" aria-hidden="true"></span>
+                <span>Loading exam details...</span>
+            </div>
+            <div class="exam-view-state exam-view-error" id="examViewError" role="alert" hidden>
+                <p id="examViewErrorMessage">Unable to load exam details.</p>
+                <button type="button" class="exam-button exam-button-secondary" id="retryExamDetailsButton">Try Again</button>
+            </div>
+            <dl class="exam-detail-list" id="examViewDetails"></dl>
+            <footer class="exam-modal-actions">
+                <button type="button" class="exam-button exam-button-secondary" data-close-modal>Close</button>
+            </footer>
+        </section>
+    </div>
+
+    <div class="exam-modal-backdrop" id="examConfirmModal" aria-hidden="true" hidden>
+        <section class="exam-modal exam-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="examConfirmTitle">
+            <span class="exam-confirm-icon" id="examConfirmIcon" aria-hidden="true">!</span>
+            <span class="exam-modal-eyebrow">Confirmation required</span>
+            <h2 id="examConfirmTitle">Cancel exam?</h2>
+            <p id="examConfirmMessage"></p>
+            <p class="exam-confirm-error" id="examConfirmError" role="alert" hidden></p>
+            <footer class="exam-modal-actions">
+                <button type="button" class="exam-button exam-button-secondary" id="cancelExamActionButton">Keep exam</button>
+                <button type="button" class="exam-button exam-button-danger" id="confirmExamActionButton">
+                    <span id="confirmExamActionText">Cancel Exam</span>
+                    <span class="exam-inline-spinner" id="confirmExamSpinner" aria-hidden="true" hidden></span>
+                </button>
+            </footer>
+        </section>
+    </div>
+
+    <script src="./js/admin.js"></script>
+    <script src="./js/exams.js"></script>
+</body>
+</html>

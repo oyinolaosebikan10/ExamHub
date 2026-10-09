@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="View your ExamHub student profile."
+    >
+
+    <title>Profile — ExamHub</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/profile.css">
+</head>
+
+<body>
+
+<div class="profile-page">
+
+    <!-- ============================================
+         NAVIGATION
+    ============================================= -->
+    <header class="profile-nav">
+
+        <div class="profile-nav-inner">
+
+            <!-- Branding only — NOT clickable -->
+            <div class="brand">
+
+                <span class="brand-mark">
+                    E
+                </span>
+
+                <span>
+                    ExamHub
+                </span>
+
+            </div>
+
+
+            <!-- Desktop navigation -->
+            <nav
+                class="desktop-student-nav"
+                aria-label="Student navigation"
+            >
+
+                <a
+                    href="./dashboard.html"
+                    class="desktop-nav-link"
+                    data-page="dashboard.html"
+                >
+                    Dashboard
+                </a>
+
+                <a
+                    href="./profile.html"
+                    class="desktop-nav-link"
+                    data-page="profile.html"
+                >
+                    Profile
+                </a>
+
+                <a
+                    href="./result.html"
+                    class="desktop-nav-link"
+                    data-page="result.html"
+                >
+                    Results
+                </a>
+
+            </nav>
+
+
+            <div class="profile-nav-right">
+
+                <div class="student-nav-info">
+
+                    <span id="navStudentName">
+                        Student
+                    </span>
+
+                    <span id="navRegistrationNumber">
+                        —
+                    </span>
+
+                </div>
+
+
+                <!-- Mobile / tablet menu -->
+                <button
+                    type="button"
+                    id="studentMenuButton"
+                    class="student-menu-button"
+                    aria-label="Open student menu"
+                    aria-expanded="false"
+                >
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ============================================
+         SIDEBAR OVERLAY
+    ============================================= -->
+    <div
+        id="studentSidebarOverlay"
+        class="student-sidebar-overlay"
+    ></div>
+
+
+    <!-- ============================================
+         SIDEBAR
+    ============================================= -->
+    <aside
+        id="studentSidebar"
+        class="student-sidebar"
+        aria-hidden="true"
+    >
+
+        <div class="student-sidebar-header">
+
+            <div class="sidebar-brand">
+
+                <span class="brand-mark">
+                    E
+                </span>
+
+                <span>
+                    ExamHub
+                </span>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="studentMenuClose"
+                class="student-menu-close"
+                aria-label="Close student menu"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="student-sidebar-profile">
+
+            <div
+                id="sidebarInitials"
+                class="sidebar-avatar"
+            >
+                ST
+            </div>
+
+            <div class="sidebar-profile-text">
+
+                <strong id="sidebarStudentName">
+                    Student
+                </strong>
+
+                <span id="sidebarRegistrationNumber">
+                    —
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <nav
+            class="student-sidebar-nav"
+            aria-label="Student navigation"
+        >
+
+            <a
+                href="./dashboard.html"
+                class="student-nav-link"
+                data-page="dashboard.html"
+            >
+                <span class="student-nav-icon">
+                    ⌂
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+            </a>
+
+
+            <a
+                href="./profile.html"
+                class="student-nav-link"
+                data-page="profile.html"
+            >
+                <span class="student-nav-icon">
+                    P
+                </span>
+
+                <span>
+                    Profile
+                </span>
+            </a>
+
+
+            <a
+                href="./result.html"
+                class="student-nav-link"
+                data-page="result.html"
+            >
+                <span class="student-nav-icon">
+                    R
+                </span>
+
+                <span>
+                    Results
+                </span>
+            </a>
+
+        </nav>
+
+
+        <div class="student-sidebar-bottom">
+
+            <button
+                type="button"
+                id="sidebarLogoutButton"
+                class="student-sidebar-logout"
+            >
+
+                <span class="student-nav-icon">
+                    ↪
+                </span>
+
+                <span>
+                    Sign out
+                </span>
+
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================
+         MAIN
+    ============================================= -->
+    <main class="profile-main">
+
+        <div class="container">
+
+            <section class="profile-header">
+
+                <p class="profile-eyebrow">
+                    Student account
+                </p>
+
+                <h1>
+                    Your profile
+                </h1>
+
+                <p class="profile-subtitle">
+                    View the information associated with
+                    your examination account.
+                </p>
+
+            </section>
+
+
+            <div
+                id="profileLoading"
+                class="card profile-loading"
+            >
+
+                <div class="spinner"></div>
+
+                <span>
+                    Loading your profile...
+                </span>
+
+            </div>
+
+
+            <div
+                id="profileError"
+                class="alert alert-danger hidden"
+            >
+                Unable to load your profile.
+            </div>
+
+
+            <section
+                id="profileContent"
+                class="hidden"
+            >
+
+                <div class="profile-grid">
+
+                    <!-- Personal information -->
+                    <div class="profile-card card">
+
+                        <div class="profile-card-heading">
+
+                            <div class="profile-icon">
+                                P
+                            </div>
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    Personal information
+                                </p>
+
+                                <h2>
+                                    Student details
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="profile-fields">
+
+                            <div class="profile-field">
+
+                                <span>
+                                    Full name
+                                </span>
+
+                                <strong id="fullName">
+                                    —
+                                </strong>
+
+                            </div>
+
+
+                            <div class="profile-field">
+
+                                <span>
+                                    Phone number
+                                </span>
+
+                                <strong id="phoneNumber">
+                                    —
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Examination information -->
+                    <div class="profile-card card">
+
+                        <div class="profile-card-heading">
+
+                            <div class="profile-icon">
+                                E
+                            </div>
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    Examination information
+                                </p>
+
+                                <h2>
+                                    Academic details
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="profile-fields">
+
+                            <div class="profile-field">
+
+                                <span>
+                                    Registration number
+                                </span>
+
+                                <strong id="registrationNumber">
+                                    —
+                                </strong>
+
+                            </div>
+
+
+                            <div class="profile-field">
+
+                                <span>
+                                    Course
+                                </span>
+
+                                <strong id="courseName">
+                                    —
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Account -->
+                    <div
+                        class="profile-card card profile-card-wide"
+                    >
+
+                        <div class="profile-card-heading">
+
+                            <div class="profile-icon">
+                                A
+                            </div>
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    Account information
+                                </p>
+
+                                <h2>
+                                    Account status
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="account-summary">
+
+                            <div class="account-status">
+
+                                <span class="account-status-label">
+                                    Status
+                                </span>
+
+                                <span
+                                    id="accountStatus"
+                                    class="badge badge-success"
+                                >
+                                    Active
+                                </span>
+
+                            </div>
+
+
+                            <div class="profile-field">
+
+                                <span>
+                                    Registered
+                                </span>
+
+                                <strong id="createdAt">
+                                    —
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="profile-footer-actions">
+
+                    <a
+                        href="./dashboard.html"
+                        class="btn btn-primary"
+                    >
+                        Back to dashboard
+                    </a>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- ============================================
+         FOOTER
+    ============================================= -->
+    <footer class="profile-footer">
+
+        <div class="container">
+
+            <span>
+                © 2026 ExamHub
+            </span>
+
+            <span>
+                Examination made simple.
+            </span>
+
+        </div>
+
+    </footer>
+
+</div>
+
+
+<script src="../js/api.js"></script>
+<script src="../js/profile.js"></script>
+
+</body>
+</html>

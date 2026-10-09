@@ -1,0 +1,166 @@
+/* =========================================================
+   EXAMHUB — AUTH
+   Clean • Minimal • Professional
+   ========================================================= */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--background);
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 420px;
+}
+
+.auth-brand {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.auth-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    box-shadow: var(--shadow-md);
+}
+
+.auth-header {
+    margin-bottom: 30px;
+}
+
+.auth-header h1 {
+    margin-bottom: 8px;
+    font-size: 1.8rem;
+    letter-spacing: -0.025em;
+}
+
+.auth-header p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.auth-card .form-group {
+    margin-bottom: 20px;
+}
+
+.auth-submit {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field .form-control {
+    padding-right: 70px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+
+    border: 0;
+    background: transparent;
+
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 650;
+
+    padding: 4px;
+}
+
+.password-toggle:hover {
+    color: var(--primary-hover);
+}
+
+.auth-footer {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+
+    margin-top: 24px;
+    padding-top: 22px;
+
+    border-top: 1px solid var(--border);
+
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.auth-footer a {
+    color: var(--primary);
+    font-weight: 650;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.auth-back {
+    display: block;
+    margin-top: 22px;
+
+    text-align: center;
+
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.auth-back:hover {
+    color: var(--text);
+}
+
+#loginError {
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 520px) {
+
+    .auth-page {
+        padding: 24px 16px;
+        align-items: flex-start;
+    }
+
+    .auth-container {
+        max-width: 100%;
+        padding-top: 32px;
+    }
+
+    .auth-brand {
+        margin-bottom: 24px;
+    }
+
+    .auth-card {
+        padding: 28px 22px;
+        border-radius: 14px;
+    }
+
+    .auth-header {
+        margin-bottom: 26px;
+    }
+
+    .auth-header h1 {
+        font-size: 1.65rem;
+    }
+
+    .auth-footer {
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+    }
+}

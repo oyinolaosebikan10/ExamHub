@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Student Details | ExamHub Admin</title>
+
+    <link rel="stylesheet" href="../css/global.css" />
+    <link rel="stylesheet" href="./css/admin.css" />
+    <link rel="stylesheet" href="./css/student-details.css" />
+</head>
+
+<body>
+    <aside class="admin-sidebar" id="adminSidebar"></aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="admin-main">
+        <header class="admin-header" id="adminHeader"></header>
+
+        <div class="admin-content student-details-page">
+            <header class="student-details-header">
+                <div class="student-details-heading">
+                    <a class="back-button" href="./students.html">
+                        <span aria-hidden="true">←</span>
+                        <span>Students</span>
+                    </a>
+
+                    <div class="student-title-block">
+                        <div class="student-title-row">
+                            <h1>Student Details</h1>
+                            <span
+                                class="status-badge status-neutral"
+                                id="studentAccountStatus"
+                            >Not available</span>
+                        </div>
+                        <p id="studentHeroSubtitle">Student record information</p>
+                    </div>
+                </div>
+            </header>
+
+            <section
+                class="student-details-state card"
+                id="studentDetailsLoadingState"
+                role="status"
+            >
+                <span class="student-loading-spinner" aria-hidden="true"></span>
+                <p>Loading student details...</p>
+            </section>
+
+            <section
+                class="student-details-state card"
+                id="studentDetailsErrorState"
+                role="alert"
+                hidden
+            >
+                <div class="student-error-icon" aria-hidden="true">!</div>
+                <h2 id="studentDetailsErrorTitle">Unable to load student</h2>
+                <p id="studentDetailsErrorMessage">
+                    Something went wrong while loading this student record.
+                </p>
+                <div class="student-details-error-actions">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="retryStudentDetailsButton"
+                    >Try Again</button>
+                    <a class="btn btn-secondary" href="./students.html">Back to Students</a>
+                </div>
+            </section>
+
+            <div id="studentDetailsContent" hidden>
+                <section class="student-profile-card card">
+                    <div class="student-profile-main">
+                        <div class="student-profile-avatar" id="studentInitials" aria-hidden="true">—</div>
+                        <div class="student-profile-copy">
+                            <span class="student-profile-eyebrow">Student</span>
+                            <h2 id="studentFullName">Not available</h2>
+                            <p>
+                                Registration number:
+                                <strong id="studentProfileRegistration">Not available</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="student-profile-id">
+                        <span>Student ID</span>
+                        <strong id="studentIdValue">Not available</strong>
+                    </div>
+                </section>
+
+                <div class="student-details-grid">
+                    <section class="student-detail-card card">
+                        <div class="student-detail-card-header">
+                            <span>Identity</span>
+                            <h2>Registration Information</h2>
+                        </div>
+                        <dl class="student-info-list">
+                            <div class="student-info-row">
+                                <dt>Full name</dt>
+                                <dd id="studentIdentityName">Not available</dd>
+                            </div>
+                            <div class="student-info-row">
+                                <dt>Registration number</dt>
+                                <dd id="studentRegistrationNumber">Not available</dd>
+                            </div>
+                            <div class="student-info-row">
+                                <dt>Student ID</dt>
+                                <dd class="student-monospace" id="studentIdentityId">Not available</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section class="student-detail-card card">
+                        <div class="student-detail-card-header">
+                            <span>Contact</span>
+                            <h2>Contact Information</h2>
+                        </div>
+                        <dl class="student-info-list">
+                            <div class="student-info-row">
+                                <dt>Phone number</dt>
+                                <dd id="studentPhoneNumber">Not available</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section class="student-detail-card card">
+                        <div class="student-detail-card-header">
+                            <span>Academic</span>
+                            <h2>Course Information</h2>
+                        </div>
+                        <dl class="student-info-list">
+                            <div class="student-info-row">
+                                <dt>Course</dt>
+                                <dd id="studentCourseName">Not available</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section class="student-detail-card card">
+                        <div class="student-detail-card-header">
+                            <span>Account</span>
+                            <h2>Account Metadata</h2>
+                        </div>
+                        <dl class="student-info-list">
+                            <div class="student-info-row">
+                                <dt>Account status</dt>
+                                <dd id="studentAccountStatusDetail">Not available</dd>
+                            </div>
+                            <div class="student-info-row">
+                                <dt>Registered</dt>
+                                <dd id="studentCreatedAt">Not available</dd>
+                            </div>
+                            <div class="student-info-row">
+                                <dt>Last updated</dt>
+                                <dd id="studentUpdatedAt">Not available</dd>
+                            </div>
+                        </dl>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="./js/admin.js"></script>
+    <script src="./js/student-details.js"></script>
+</body>
+</html>

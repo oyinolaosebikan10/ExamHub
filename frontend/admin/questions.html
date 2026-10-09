@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Questions | ExamHub Administration</title>
+    <link rel="stylesheet" href="../css/global.css" />
+    <link rel="stylesheet" href="./css/admin.css" />
+    <link rel="stylesheet" href="./css/questions.css" />
+</head>
+<body>
+    <div class="admin-app">
+        <aside class="admin-sidebar" id="adminSidebar"></aside>
+
+        <div class="admin-main">
+            <header class="admin-header" id="adminHeader"></header>
+
+            <main class="admin-content questions-page">
+                <section class="questions-page-header">
+                    <div class="questions-heading">
+                        <div class="questions-breadcrumb">
+                            <span>Examination</span>
+                            <span aria-hidden="true">/</span>
+                            <strong>Question Bank</strong>
+                        </div>
+                        <h1>Questions</h1>
+                        <p>Manage the questions available to examinations.</p>
+                    </div>
+                    <div class="questions-header-actions">
+                        <button type="button" class="question-button question-button-secondary" id="refreshQuestionsButton">Refresh</button>
+                        <button type="button" class="question-button question-button-primary" id="addQuestionButton">
+                            <span aria-hidden="true">+</span>
+                            <span>Add Question</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="question-summary-grid" aria-label="Question bank overview">
+                    <article class="question-summary-card">
+                        <span>Total Questions</span>
+                        <strong id="totalQuestions">—</strong>
+                        <small>All questions in the bank</small>
+                    </article>
+                    <article class="question-summary-card">
+                        <span>Active</span>
+                        <strong id="activeQuestions">—</strong>
+                        <small>Marked active in the bank</small>
+                    </article>
+                    <article class="question-summary-card">
+                        <span>Inactive</span>
+                        <strong id="inactiveQuestions">—</strong>
+                        <small>Marked inactive in the bank</small>
+                    </article>
+                    <article class="question-summary-card">
+                        <span>Courses Represented</span>
+                        <strong id="representedCourses">—</strong>
+                        <small>Courses with questions in the bank</small>
+                    </article>
+                </section>
+
+                <section class="question-management-card" aria-labelledby="questionListHeading">
+                    <div class="question-management-header">
+                        <div>
+                            <div class="question-title-row">
+                                <h2 id="questionListHeading">Question Bank</h2>
+                                <span class="question-count" id="questionCount">—</span>
+                            </div>
+                            <p>Review and manage exam questions.</p>
+                        </div>
+                    </div>
+
+                    <div class="question-toolbar">
+                        <label class="question-search">
+                            <span aria-hidden="true">⌕</span>
+                            <input
+                                type="search"
+                                id="questionSearch"
+                                placeholder="Search question text or ID"
+                                aria-label="Search questions"
+                                autocomplete="off"
+                            />
+                        </label>
+                        <label class="question-filter">
+                            <span>Course</span>
+                            <select id="questionCourseFilter" aria-label="Filter questions by course">
+                                <option value="all">All courses</option>
+                            </select>
+                        </label>
+                        <label class="question-filter">
+                            <span>Status</span>
+                            <select id="questionStatusFilter" aria-label="Filter questions by status">
+                                <option value="all">All statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="unknown">Unspecified</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="question-state" id="questionsLoadingState" role="status">
+                        <span class="question-spinner" aria-hidden="true"></span>
+                        <span>Loading questions...</span>
+                    </div>
+
+                    <div class="question-state question-error-state" id="questionsErrorState" role="alert" hidden>
+                        <span class="question-state-icon" aria-hidden="true">!</span>
+                        <h3>Unable to load questions</h3>
+                        <p id="questionsErrorMessage">We couldn't retrieve the question bank. Please try again.</p>
+                        <button type="button" class="question-button question-button-secondary" id="retryQuestionsButton">Try Again</button>
+                    </div>
+
+                    <div class="question-state question-empty-state" id="questionsEmptyState" hidden>
+                        <span class="question-state-icon" aria-hidden="true">?</span>
+                        <h3 id="questionsEmptyTitle">No questions found</h3>
+                        <p id="questionsEmptyMessage">There are currently no questions in the question bank.</p>
+                        <button type="button" class="question-button question-button-primary" id="emptyAddQuestionButton">Add Question</button>
+                        <button type="button" class="question-button question-button-secondary" id="clearQuestionFiltersButton" hidden>Clear search and filters</button>
+                    </div>
+
+                    <div class="question-table-wrapper" id="questionsTableWrapper" hidden>
+                        <table class="question-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Question</th>
+                                    <th scope="col">Course</th>
+                                    <th scope="col">Marks</th>
+                                    <th scope="col">Correct Answer</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Updated</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="questionsTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="question-toast" id="questionToast" role="status" aria-live="polite" hidden></div>
+                </section>
+            </main>
+        </div>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    </div>
+
+    <div class="question-modal-backdrop" id="questionFormModal" aria-hidden="true" hidden>
+        <section class="question-modal question-form-modal" role="dialog" aria-modal="true" aria-labelledby="questionFormTitle">
+            <header class="question-modal-header">
+                <div>
+                    <span class="question-modal-eyebrow">Question bank</span>
+                    <h2 id="questionFormTitle">Add Question</h2>
+                    <p id="questionFormDescription">Add a multiple-choice question to a course.</p>
+                </div>
+                <button type="button" class="question-modal-close" data-close-modal aria-label="Close dialog">×</button>
+            </header>
+
+            <form id="questionForm" novalidate>
+                <div class="question-form-body">
+                    <p class="question-form-message" id="questionFormMessage" role="alert" hidden></p>
+
+                    <label class="question-form-field" for="questionCourse">
+                        <span>Course <b aria-hidden="true">*</b></span>
+                        <select id="questionCourse" required>
+                            <option value="">Select a course</option>
+                        </select>
+                    </label>
+
+                    <label class="question-form-field" for="questionText">
+                        <span>Question <b aria-hidden="true">*</b></span>
+                        <textarea id="questionText" rows="3" required></textarea>
+                    </label>
+
+                    <fieldset class="question-options-fieldset">
+                        <legend>Answer options <b aria-hidden="true">*</b></legend>
+                        <label class="question-option-field" for="questionOptionA">
+                            <span>A</span>
+                            <textarea id="questionOptionA" rows="2" required></textarea>
+                        </label>
+                        <label class="question-option-field" for="questionOptionB">
+                            <span>B</span>
+                            <textarea id="questionOptionB" rows="2" required></textarea>
+                        </label>
+                        <label class="question-option-field" for="questionOptionC">
+                            <span>C</span>
+                            <textarea id="questionOptionC" rows="2" required></textarea>
+                        </label>
+                        <label class="question-option-field" for="questionOptionD">
+                            <span>D</span>
+                            <textarea id="questionOptionD" rows="2" required></textarea>
+                        </label>
+                    </fieldset>
+
+                    <div class="question-form-grid">
+                        <label class="question-form-field" for="questionCorrectAnswer">
+                            <span>Correct answer <b aria-hidden="true">*</b></span>
+                            <select id="questionCorrectAnswer" required>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </label>
+                        <label class="question-form-field" for="questionMarks">
+                            <span>Marks <b aria-hidden="true">*</b></span>
+                            <input id="questionMarks" type="number" min="1" step="1" required />
+                        </label>
+                    </div>
+                </div>
+
+                <footer class="question-modal-actions">
+                    <button type="button" class="question-button question-button-secondary" data-close-modal>Cancel</button>
+                    <button type="submit" class="question-button question-button-primary" id="saveQuestionButton">
+                        <span id="saveQuestionButtonText">Add Question</span>
+                        <span class="question-inline-spinner" id="saveQuestionSpinner" aria-hidden="true" hidden></span>
+                    </button>
+                </footer>
+            </form>
+        </section>
+    </div>
+
+    <div class="question-modal-backdrop" id="questionViewModal" aria-hidden="true" hidden>
+        <section class="question-modal question-view-modal" role="dialog" aria-modal="true" aria-labelledby="questionViewTitle">
+            <header class="question-modal-header">
+                <div>
+                    <span class="question-modal-eyebrow">Question details</span>
+                    <h2 id="questionViewTitle">Question</h2>
+                    <p id="questionViewSubtitle"></p>
+                </div>
+                <button type="button" class="question-modal-close" data-close-modal aria-label="Close dialog">×</button>
+            </header>
+            <div class="question-view-body">
+                <div class="question-view-prompt" id="questionViewPrompt"></div>
+                <div class="question-view-options" id="questionViewOptions"></div>
+                <div class="question-view-metadata" id="questionViewMetadata"></div>
+            </div>
+            <footer class="question-modal-actions">
+                <button type="button" class="question-button question-button-secondary" data-close-modal>Close</button>
+            </footer>
+        </section>
+    </div>
+
+    <div class="question-modal-backdrop" id="questionConfirmModal" aria-hidden="true" hidden>
+        <section class="question-modal question-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="questionConfirmTitle">
+            <span class="question-confirm-icon" id="questionConfirmIcon" aria-hidden="true">!</span>
+            <span class="question-modal-eyebrow">Confirmation required</span>
+            <h2 id="questionConfirmTitle">Confirm question action</h2>
+            <p id="questionConfirmMessage"></p>
+            <p class="question-confirm-error" id="questionConfirmError" role="alert" hidden></p>
+            <footer class="question-modal-actions">
+                <button type="button" class="question-button question-button-secondary" id="cancelQuestionActionButton">Cancel</button>
+                <button type="button" class="question-button question-button-primary" id="confirmQuestionActionButton">
+                    <span id="confirmQuestionActionText">Confirm</span>
+                    <span class="question-inline-spinner" id="confirmQuestionSpinner" aria-hidden="true" hidden></span>
+                </button>
+            </footer>
+        </section>
+    </div>
+
+    <script src="./js/admin.js"></script>
+    <script src="./js/questions.js"></script>
+</body>
+</html>

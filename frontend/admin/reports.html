@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Review and export ExamHub examination reports.">
+    <title>Reports | ExamHub Administration</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="./css/admin.css">
+    <link rel="stylesheet" href="./css/reports.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar" id="adminSidebar" aria-label="Admin navigation"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <main class="admin-main">
+            <header class="admin-header" id="adminHeader"></header>
+            <section class="admin-content reports-page">
+                <div class="reports-header">
+                    <div>
+                        <p class="reports-eyebrow">Academic records</p>
+                        <h1>Reports</h1>
+                        <p>Review persisted examination results and download reports using the available filters.</p>
+                    </div>
+                    <div class="reports-header-actions">
+                        <button type="button" class="reports-button reports-button-secondary" id="refreshReportsButton">Refresh</button>
+                        <button type="button" class="reports-button reports-button-secondary" id="exportCsvButton" disabled>Export CSV</button>
+                        <button type="button" class="reports-button reports-button-primary" id="downloadReportButton" disabled>Download PDF</button>
+                    </div>
+                </div>
+
+                <p class="reports-feedback" id="reportsFeedback" role="status" aria-live="polite" hidden></p>
+
+                <section class="reports-summary-grid" aria-label="Filtered report summary">
+                    <article class="reports-summary-card">
+                        <span>Results</span>
+                        <strong id="reportResultCount">—</strong>
+                        <small>Matching persisted attempts</small>
+                    </article>
+                    <article class="reports-summary-card">
+                        <span>Average percentage</span>
+                        <strong id="reportAverage">—</strong>
+                        <small>Across matching results</small>
+                    </article>
+                    <article class="reports-summary-card">
+                        <span>Highest percentage</span>
+                        <strong id="reportHighest">—</strong>
+                        <small>Best matching result</small>
+                    </article>
+                    <article class="reports-summary-card">
+                        <span>Exams represented</span>
+                        <strong id="reportExamCount">—</strong>
+                        <small>Distinct exams in this report</small>
+                    </article>
+                </section>
+
+                <section class="reports-card" aria-labelledby="reportsTableTitle">
+                    <div class="reports-card-heading">
+                        <div>
+                            <h2 id="reportsTableTitle">Examination results</h2>
+                            <p>Search and filter real result records. PDF filters are limited to those supported by the report API.</p>
+                        </div>
+                        <span class="reports-count" id="reportsCount">0 results</span>
+                    </div>
+
+                    <div class="reports-toolbar">
+                        <label class="reports-field reports-search">
+                            <span>Search</span>
+                            <input type="search" id="reportSearch" placeholder="Student, registration number, exam or course" autocomplete="off">
+                        </label>
+                        <label class="reports-field">
+                            <span>Exam</span>
+                            <select id="reportExamFilter"><option value="all">All exams</option></select>
+                        </label>
+                        <label class="reports-field">
+                            <span>Course</span>
+                            <select id="reportCourseFilter"><option value="all">All courses</option></select>
+                        </label>
+                        <label class="reports-field">
+                            <span>Program</span>
+                            <select id="reportProgramFilter"><option value="all">All programs</option></select>
+                        </label>
+                        <label class="reports-field">
+                            <span>Submitted from</span>
+                            <input type="date" id="reportDateFrom">
+                        </label>
+                        <label class="reports-field">
+                            <span>Submitted through</span>
+                            <input type="date" id="reportDateTo">
+                        </label>
+                    </div>
+                    <p class="reports-export-note" id="reportExportNote">PDF export supports exam and course filters. Use CSV to export the exact search and program-filtered rows.</p>
+
+                    <div class="reports-state" id="reportsLoading" role="status">Loading report data...</div>
+                    <div class="reports-state reports-error" id="reportsError" role="alert" hidden>
+                        <strong>Reports could not be loaded.</strong>
+                        <p id="reportsErrorMessage">Please try again.</p>
+                        <button type="button" class="reports-button reports-button-secondary" id="retryReportsButton">Try again</button>
+                    </div>
+                    <div class="reports-state" id="reportsEmpty" hidden>
+                        <strong id="reportsEmptyTitle">No results found</strong>
+                        <p id="reportsEmptyMessage">No saved results match the current filters.</p>
+                    </div>
+                    <div class="reports-table-wrap" id="reportsTableWrap" hidden>
+                        <table class="reports-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Student</th>
+                                    <th scope="col">Registration number</th>
+                                    <th scope="col">Exam</th>
+                                    <th scope="col">Course</th>
+                                    <th scope="col">Program</th>
+                                    <th scope="col">Attempt</th>
+                                    <th scope="col">Score</th>
+                                    <th scope="col">Percentage</th>
+                                    <th scope="col">Submitted</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+    <script src="./js/admin.js"></script>
+    <script src="./js/reports.js"></script>
+</body>
+</html>

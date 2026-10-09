@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="View your ExamHub examination result."
+    >
+
+    <title>Results — ExamHub</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/result.css">
+</head>
+
+<body>
+
+<div class="result-page">
+
+    <!-- ============================================
+         NAVIGATION
+    ============================================= -->
+    <header class="result-nav">
+
+        <div class="result-nav-inner">
+
+            <!-- Branding only — NOT clickable -->
+            <div class="brand">
+
+                <span class="brand-mark">
+                    E
+                </span>
+
+                <span>
+                    ExamHub
+                </span>
+
+            </div>
+
+
+            <!-- Desktop navigation -->
+            <nav
+                class="desktop-student-nav"
+                aria-label="Student navigation"
+            >
+
+                <a
+                    href="./dashboard.html"
+                    class="desktop-nav-link"
+                    data-page="dashboard.html"
+                >
+                    Dashboard
+                </a>
+
+                <a
+                    href="./profile.html"
+                    class="desktop-nav-link"
+                    data-page="profile.html"
+                >
+                    Profile
+                </a>
+
+                <a
+                    href="./result.html"
+                    class="desktop-nav-link"
+                    data-page="result.html"
+                >
+                    Results
+                </a>
+
+            </nav>
+
+
+            <div class="result-nav-right">
+
+                <div class="student-nav-info">
+
+                    <span id="navStudentName">
+                        Student
+                    </span>
+
+                    <span id="navRegistrationNumber">
+                        —
+                    </span>
+
+                </div>
+
+
+                <!-- Mobile / tablet menu -->
+                <button
+                    type="button"
+                    id="studentMenuButton"
+                    class="student-menu-button"
+                    aria-label="Open student menu"
+                    aria-expanded="false"
+                >
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ============================================
+         SIDEBAR OVERLAY
+    ============================================= -->
+    <div
+        id="studentSidebarOverlay"
+        class="student-sidebar-overlay"
+    ></div>
+
+
+    <!-- ============================================
+         SIDEBAR
+    ============================================= -->
+    <aside
+        id="studentSidebar"
+        class="student-sidebar"
+        aria-hidden="true"
+    >
+
+        <div class="student-sidebar-header">
+
+            <div class="sidebar-brand">
+
+                <span class="brand-mark">
+                    E
+                </span>
+
+                <span>
+                    ExamHub
+                </span>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="studentMenuClose"
+                class="student-menu-close"
+                aria-label="Close student menu"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="student-sidebar-profile">
+
+            <div
+                id="sidebarInitials"
+                class="sidebar-avatar"
+            >
+                ST
+            </div>
+
+            <div class="sidebar-profile-text">
+
+                <strong id="sidebarStudentName">
+                    Student
+                </strong>
+
+                <span id="sidebarRegistrationNumber">
+                    —
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <nav
+            class="student-sidebar-nav"
+            aria-label="Student navigation"
+        >
+
+            <a
+                href="./dashboard.html"
+                class="student-nav-link"
+                data-page="dashboard.html"
+            >
+
+                <span class="student-nav-icon">
+                    ⌂
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+
+            <a
+                href="./profile.html"
+                class="student-nav-link"
+                data-page="profile.html"
+            >
+
+                <span class="student-nav-icon">
+                    P
+                </span>
+
+                <span>
+                    Profile
+                </span>
+
+            </a>
+
+
+            <a
+                href="./result.html"
+                class="student-nav-link"
+                data-page="result.html"
+            >
+
+                <span class="student-nav-icon">
+                    R
+                </span>
+
+                <span>
+                    Results
+                </span>
+
+            </a>
+
+        </nav>
+
+
+        <div class="student-sidebar-bottom">
+
+            <button
+                type="button"
+                id="sidebarLogoutButton"
+                class="student-sidebar-logout"
+            >
+
+                <span class="student-nav-icon">
+                    ↪
+                </span>
+
+                <span>
+                    Sign out
+                </span>
+
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================
+         MAIN
+    ============================================= -->
+    <main class="result-main">
+
+        <div class="container">
+
+            <section class="result-header">
+
+                <p class="result-eyebrow" id="resultPageEyebrow">
+                    Examination result
+                </p>
+
+                <h1 id="resultPageTitle">
+                    Your result
+                </h1>
+
+                <p class="result-subtitle" id="resultPageSubtitle">
+                    View the result associated with your
+                    completed examination.
+                </p>
+
+            </section>
+
+
+            <!-- Loading -->
+            <div
+                id="resultLoading"
+                class="card result-loading"
+            >
+
+                <div class="spinner"></div>
+
+                <span>
+                    Loading your result...
+                </span>
+
+            </div>
+
+            <section
+                id="submissionConfirmation"
+                class="card submission-confirmation hidden"
+                role="region"
+                aria-labelledby="submissionConfirmationTitle"
+            >
+                <span
+                    id="submissionStatusBadge"
+                    class="badge badge-success"
+                >
+                    Examination submitted
+                </span>
+
+                <h2 id="submissionConfirmationTitle">
+                    Your examination has been submitted
+                </h2>
+
+                <p
+                    id="submissionConfirmationMessage"
+                    role="status"
+                    aria-live="polite"
+                >
+                    Your submission has been recorded. Your result will be available here when it is released.
+                </p>
+
+                <a
+                    href="./dashboard.html"
+                    id="submissionReturnDashboard"
+                    class="btn btn-primary"
+                >
+                    Return to dashboard
+                </a>
+            </section>
+
+
+            <!-- Error -->
+            <div
+                id="resultError"
+                class="alert alert-danger hidden"
+            >
+                Unable to load your examination result.
+            </div>
+
+
+            <!-- Result -->
+            <section
+                id="resultContent"
+                class="hidden"
+            >
+
+                <!-- Result summary -->
+                <div class="result-summary card">
+
+                    <div class="result-summary-top">
+
+                        <div>
+
+                            <span
+                                id="resultStatusBadge"
+                                class="badge badge-success"
+                            >
+                                Examination submitted
+                            </span>
+
+                            <h2 id="examTitle">
+                                Examination
+                            </h2>
+
+                            <p id="submittedAt">
+                                Submitted
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="result-score">
+
+                        <div class="score-main">
+
+                            <span>
+                                Percentage
+                            </span>
+
+                            <strong id="percentage">
+                                0%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="score-breakdown">
+
+                            <span>
+                                Score
+                            </span>
+
+                            <strong id="scoreBreakdown">
+                                0 / 0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Student details -->
+                <div class="result-card-grid">
+
+                    <div class="result-info-card card">
+
+                        <div class="result-card-heading">
+
+                            <div class="result-icon">
+                                S
+                            </div>
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    Student information
+                                </p>
+
+                                <h2>
+                                    Candidate details
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="result-fields">
+
+                            <div class="result-field">
+
+                                <span>
+                                    Full name
+                                </span>
+
+                                <strong id="studentName">
+                                    —
+                                </strong>
+
+                            </div>
+
+
+                            <div class="result-field">
+
+                                <span>
+                                    Registration number
+                                </span>
+
+                                <strong id="registrationNumber">
+                                    —
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Examination details -->
+                    <div class="result-info-card card">
+
+                        <div class="result-card-heading">
+
+                            <div class="result-icon">
+                                E
+                            </div>
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    Examination information
+                                </p>
+
+                                <h2>
+                                    Examination details
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="result-fields">
+
+                            <div class="result-field">
+
+                                <span>
+                                    Course
+                                </span>
+
+                                <strong id="courseId">
+                                    —
+                                </strong>
+
+                            </div>
+
+
+                            <div class="result-field">
+
+                                <span>
+                                    Submission type
+                                </span>
+
+                                <strong id="submissionType">
+                                    —
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Notice -->
+                <div class="result-notice">
+
+                    <div class="result-notice-icon">
+                        i
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Result information
+                        </strong>
+
+                        <p id="resultMessage">
+                            Your examination has been submitted successfully.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="result-actions">
+
+                    <button
+                        type="button"
+                        id="downloadResultButton"
+                        class="btn btn-secondary result-download-button hidden"
+                    >
+                        Download result
+                    </button>
+
+                    <a
+                        href="./dashboard.html"
+                        class="btn btn-primary"
+                    >
+                        Return to dashboard
+                    </a>
+
+                </div>
+
+                <p
+                    id="downloadResultError"
+                    class="result-download-error hidden"
+                    role="alert"
+                ></p>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- ============================================
+         FOOTER
+    ============================================= -->
+    <footer class="result-footer">
+
+        <div class="container">
+
+            <span>
+                © 2026 ExamHub
+            </span>
+
+            <span>
+                Examination made simple.
+            </span>
+
+        </div>
+
+    </footer>
+
+</div>
+
+
+<script src="../js/api.js"></script>
+<script src="../js/result.js"></script>
+
+</body>
+</html>

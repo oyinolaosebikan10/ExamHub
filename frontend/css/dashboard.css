@@ -1,0 +1,887 @@
+/* ============================================
+   DASHBOARD PAGE
+============================================ */
+
+.dashboard-page {
+    min-height: 100vh;
+    background: #f5f7fb;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* ============================================
+   NAVIGATION
+============================================ */
+
+.dashboard-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dashboard-nav-inner {
+    width: min(1200px, calc(100% - 40px));
+    min-height: 72px;
+    margin: 0 auto;
+
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+
+/* Branding — intentionally NOT clickable */
+
+.dashboard-nav .brand {
+    flex: 0 0 auto;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #0b1220;
+    font-size: 18px;
+    font-weight: 700;
+
+    user-select: none;
+}
+
+.brand-mark {
+    width: 34px;
+    height: 34px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+    background: #1d4ed8;
+
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+
+/* ============================================
+   DESKTOP NAV
+============================================ */
+
+.desktop-student-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    margin-right: auto;
+}
+
+.desktop-nav-link {
+    position: relative;
+
+    min-height: 72px;
+    padding: 0 14px;
+
+    display: inline-flex;
+    align-items: center;
+
+    color: #64748b;
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.desktop-nav-link:hover {
+    color: #1d4ed8;
+}
+
+.desktop-nav-link.active {
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.desktop-nav-link.active::after {
+    content: "";
+
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+
+    height: 2px;
+
+    background: #1d4ed8;
+    border-radius: 2px 2px 0 0;
+}
+
+
+/* ============================================
+   STUDENT INFO
+============================================ */
+
+.dashboard-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    margin-left: auto;
+}
+
+.student-nav-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.student-nav-info span:first-child {
+    color: #0b1220;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.student-nav-info span:last-child {
+    color: #64748b;
+    font-size: 12px;
+}
+
+
+/* ============================================
+   HAMBURGER
+============================================ */
+
+.student-menu-button {
+    display: none;
+
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.student-menu-button span {
+    width: 17px;
+    height: 2px;
+
+    border-radius: 2px;
+
+    background: #0b1220;
+
+    transition: background-color 0.2s ease;
+}
+
+.student-menu-button:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.student-menu-button:hover span {
+    background: #1d4ed8;
+}
+
+.student-menu-button:active {
+    transform: scale(0.96);
+}
+
+
+/* ============================================
+   SIDEBAR
+============================================ */
+
+.student-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 190;
+
+    background: rgba(11, 18, 32, 0.28);
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s ease;
+}
+
+.student-sidebar-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+.student-sidebar {
+    position: fixed;
+
+    top: 0;
+    right: 0;
+
+    z-index: 200;
+
+    width: min(330px, 88vw);
+    height: 100vh;
+
+    background: #ffffff;
+
+    border-left: 1px solid #e5e7eb;
+
+    display: flex;
+    flex-direction: column;
+
+    transform: translateX(100%);
+
+    transition: transform 0.28s ease;
+
+    box-shadow:
+        -12px 0 40px rgba(11, 18, 32, 0.08);
+}
+
+.student-sidebar.open {
+    transform: translateX(0);
+}
+
+
+.student-sidebar-header {
+    min-height: 72px;
+
+    padding: 0 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid #eef0f4;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #0b1220;
+
+    font-size: 17px;
+    font-weight: 700;
+}
+
+
+.student-menu-close {
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #475569;
+
+    font-size: 24px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.student-menu-close:hover {
+    background: #f8fafc;
+    color: #0b1220;
+    border-color: #cbd5e1;
+}
+
+
+/* ============================================
+   SIDEBAR PROFILE
+============================================ */
+
+.student-sidebar-profile {
+    margin: 20px 16px;
+    padding: 16px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    background: #f8fafc;
+
+    border: 1px solid #eef0f4;
+    border-radius: 12px;
+}
+
+.sidebar-avatar {
+    width: 42px;
+    height: 42px;
+
+    flex: 0 0 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #eff6ff;
+    color: #1d4ed8;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.sidebar-profile-text {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sidebar-profile-text strong {
+    color: #0b1220;
+    font-size: 14px;
+    font-weight: 600;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-profile-text span {
+    color: #64748b;
+    font-size: 12px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* ============================================
+   SIDEBAR NAV
+============================================ */
+
+.student-sidebar-nav {
+    padding: 4px 12px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.student-nav-link {
+    min-height: 46px;
+
+    padding: 0 13px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    border-radius: 9px;
+
+    color: #475569;
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.student-nav-link:hover {
+    background: #f8fafc;
+    color: #1d4ed8;
+}
+
+.student-nav-link.active {
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.student-nav-icon {
+    width: 24px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: currentColor;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+
+/* ============================================
+   SIDEBAR LOGOUT
+============================================ */
+
+.student-sidebar-bottom {
+    margin-top: auto;
+
+    padding: 16px 12px;
+
+    border-top: 1px solid #eef0f4;
+}
+
+.student-sidebar-logout {
+    width: 100%;
+    min-height: 46px;
+
+    padding: 0 13px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: #64748b;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+    text-align: left;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.student-sidebar-logout:hover {
+    background: #fff1f2;
+    color: #dc2626;
+}
+
+
+/* ============================================
+   MAIN
+============================================ */
+
+.dashboard-main {
+    flex: 1;
+    padding: 52px 0 70px;
+}
+
+.dashboard-header {
+    margin-bottom: 42px;
+}
+
+.dashboard-eyebrow {
+    margin: 0 0 8px;
+
+    color: #1d4ed8;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+
+    color: #0b1220;
+
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.15;
+}
+
+.dashboard-subtitle {
+    max-width: 620px;
+
+    margin: 12px 0 0;
+
+    color: #64748b;
+
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.student-meta {
+    margin-top: 16px;
+
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+
+    color: #475569;
+
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.meta-divider {
+    color: #cbd5e1;
+}
+
+
+/* ============================================
+   SECTIONS
+============================================ */
+
+.dashboard-section {
+    margin-bottom: 42px;
+}
+
+.section-heading {
+    margin-bottom: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.section-kicker {
+    margin: 0 0 5px;
+
+    color: #64748b;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.section-heading h2 {
+    margin: 0;
+
+    color: #0b1220;
+
+    font-size: 21px;
+    line-height: 1.3;
+}
+
+
+/* ============================================
+   EXAM
+============================================ */
+
+.dashboard-loading {
+    min-height: 150px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+.exam-card {
+    padding: 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 28px;
+}
+
+.exam-card-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.exam-card-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.exam-icon {
+    width: 42px;
+    height: 42px;
+
+    flex: 0 0 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #eff6ff;
+    color: #1d4ed8;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.exam-card-heading h3 {
+    margin: 9px 0 5px;
+
+    color: #0b1220;
+
+    font-size: 18px;
+}
+
+.exam-card-heading p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.exam-details {
+    margin-top: 24px;
+
+    display: flex;
+    gap: 36px;
+}
+
+.exam-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.exam-detail span {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.exam-detail strong {
+    color: #0b1220;
+    font-size: 14px;
+}
+
+.exam-card-action {
+    flex: 0 0 auto;
+}
+
+
+/* ============================================
+   RESULTS
+============================================ */
+
+.result-card {
+    padding: 24px;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.result-icon {
+    width: 42px;
+    height: 42px;
+
+    flex: 0 0 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #f1f5f9;
+    color: #64748b;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.result-content {
+    min-width: 0;
+    flex: 1;
+}
+
+.result-top {
+    margin-bottom: 8px;
+}
+
+.result-content h3 {
+    margin: 0 0 6px;
+
+    color: #0b1220;
+
+    font-size: 17px;
+}
+
+.result-content p {
+    max-width: 700px;
+
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.result-action {
+    margin-top: 16px;
+}
+
+
+/* ============================================
+   EMPTY STATE
+============================================ */
+
+.empty-state {
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.empty-state .status-icon {
+    margin: 0 auto 14px;
+}
+
+.empty-state h3 {
+    margin: 0 0 7px;
+
+    color: #0b1220;
+
+    font-size: 17px;
+}
+
+.empty-state p {
+    max-width: 500px;
+
+    margin: 0 auto;
+
+    color: #64748b;
+
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+
+/* ============================================
+   FOOTER
+============================================ */
+
+.dashboard-footer {
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+}
+
+.dashboard-footer .container {
+    min-height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    color: #64748b;
+    font-size: 12px;
+}
+
+
+/* ============================================
+   SIDEBAR BODY LOCK
+============================================ */
+
+body.sidebar-open {
+    overflow: hidden;
+}
+
+
+/* ============================================
+   TABLET / MOBILE
+============================================ */
+
+@media (max-width: 767px) {
+
+    .dashboard-nav-inner {
+        width: min(100% - 28px, 1200px);
+        min-height: 64px;
+    }
+
+    .desktop-student-nav {
+        display: none;
+    }
+
+    .student-nav-info {
+        display: none;
+    }
+
+    .student-menu-button {
+        display: flex;
+    }
+
+    .dashboard-main {
+        padding: 36px 0 50px;
+    }
+
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+
+    .exam-card {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .exam-card-action {
+        width: 100%;
+    }
+
+    .exam-card-action .btn {
+        width: 100%;
+    }
+
+    .exam-details {
+        gap: 28px;
+    }
+
+    .result-card {
+        padding: 20px;
+    }
+
+    .dashboard-footer .container {
+        min-height: 70px;
+
+        align-items: flex-start;
+        justify-content: center;
+
+        flex-direction: column;
+        gap: 4px;
+    }
+}

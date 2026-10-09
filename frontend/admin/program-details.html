@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Program Details | ExamHub Admin</title>
+
+    <link rel="stylesheet" href="./css/admin.css">
+    <link rel="stylesheet" href="./css/program-details.css">
+</head>
+
+<body>
+
+    <aside
+        class="admin-sidebar"
+        id="adminSidebar"
+    ></aside>
+
+    <div
+        class="sidebar-overlay"
+        id="sidebarOverlay"
+    ></div>
+
+    <main class="admin-main">
+
+        <header
+            class="admin-header"
+            id="adminHeader"
+        ></header>
+
+        <section class="program-details-page">
+
+            <!-- =====================================================
+                 PAGE HEADER
+                 ===================================================== -->
+
+            <div class="program-details-header">
+
+                <div class="program-details-heading">
+
+                    <button
+                        type="button"
+                        class="back-button"
+                        id="backToProgramsButton"
+                    >
+                        <span aria-hidden="true">←</span>
+                        <span>Programs</span>
+                    </button>
+
+                    <div class="program-title-block">
+
+                        <div class="program-title-row">
+
+                            <h1 id="programPageTitle">
+                                Program Details
+                            </h1>
+
+                            <div class="program-status-group">
+                                <span class="program-status-label">Schedule</span>
+                                <span
+                                    class="status-badge status-neutral"
+                                    id="programStatus"
+                                >
+                                    Loading
+                                </span>
+                            </div>
+
+                            <div class="program-status-group">
+                                <span class="program-status-label">Lifecycle</span>
+                                <span
+                                    class="status-badge status-success"
+                                    id="programLifecycleStatus"
+                                >
+                                    Active
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <p id="programHeroDescription">
+                            Loading program information...
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="program-header-actions">
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="editProgramButton"
+                    >
+                        Edit Program
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 LOADING STATE
+                 ===================================================== -->
+
+            <section
+                class="program-state-card"
+                id="programLoadingState"
+            >
+                <div class="loading-state">
+                    Loading program details...
+                </div>
+            </section>
+
+
+            <!-- =====================================================
+                 ERROR STATE
+                 ===================================================== -->
+
+            <section
+                class="program-state-card"
+                id="programErrorState"
+                hidden
+            >
+
+                <div class="error-state">
+
+                    <h3>
+                        Unable to load program
+                    </h3>
+
+                    <p id="programErrorMessage">
+                        Something went wrong while loading this program.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        id="retryProgramButton"
+                    >
+                        Try Again
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================================
+                 PROGRAM CONTENT
+                 ===================================================== -->
+
+            <div
+                id="programContent"
+                hidden
+            >
+
+                <!-- =================================================
+                     OVERVIEW
+                     ================================================= -->
+
+                <section class="program-overview-card card">
+
+                    <div class="program-overview-main">
+
+                        <div class="program-overview-icon">
+                            <span aria-hidden="true">P</span>
+                        </div>
+
+                        <div class="program-overview-text">
+
+                            <span class="program-overview-label">
+                                Program
+                            </span>
+
+                            <h2 id="programName">
+                                —
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="program-overview-meta">
+
+                        <div class="overview-meta-item">
+
+                            <span class="overview-meta-label">
+                                Venue
+                            </span>
+
+                            <strong id="programOverviewVenueName">
+                                —
+                            </strong>
+
+                        </div>
+
+
+                        <div class="overview-meta-item">
+
+                            <span class="overview-meta-label">
+                                Venue Type
+                            </span>
+
+                            <strong id="programOverviewVenueType">
+                                —
+                            </strong>
+
+                        </div>
+
+
+                        <div class="overview-meta-item">
+
+                            <span class="overview-meta-label">
+                                Program ID
+                            </span>
+
+                            <strong id="programOverviewId">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     MAIN DETAILS GRID
+                     ================================================= -->
+
+                <div class="program-details-grid">
+
+
+                    <!-- =============================================
+                         PROGRAM INFORMATION
+                         ============================================= -->
+
+                    <section class="detail-card card">
+
+                        <div class="detail-card-header">
+
+                            <div>
+                                <span class="detail-card-eyebrow">
+                                    Program
+                                </span>
+
+                                <h2>
+                                    Program Information
+                                </h2>
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-list">
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Program Name
+                                </span>
+
+                                <strong
+                                    class="info-value"
+                                    id="programInfoName"
+                                >
+                                    —
+                                </strong>
+
+                            </div>
+
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Venue Type
+                                </span>
+
+                                <strong
+                                    class="info-value"
+                                    id="programVenueType"
+                                >
+                                    —
+                                </strong>
+
+                            </div>
+
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Venue
+                                </span>
+
+                                <strong
+                                    class="info-value"
+                                    id="programVenueName"
+                                >
+                                    —
+                                </strong>
+
+                            </div>
+
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Program ID
+                                </span>
+
+                                <strong
+                                    class="info-value"
+                                    id="programId"
+                                >
+                                    —
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =============================================
+                         RESULT SETTINGS
+                         ============================================= -->
+
+                    <section class="detail-card card">
+
+                        <div class="detail-card-header">
+
+                            <div>
+                                <span class="detail-card-eyebrow">
+                                    Results
+                                </span>
+
+                                <h2>
+                                    Result Settings
+                                </h2>
+                            </div>
+
+                        </div>
+
+
+                        <div class="result-settings-list">
+
+                            <div class="result-setting-row">
+
+                                <div class="result-setting-copy">
+
+                                    <strong>
+                                        Result Visibility
+                                    </strong>
+
+                                    <span>
+                                        Controls when students can see
+                                        their results.
+                                    </span>
+
+                                </div>
+
+                                <span
+                                    class="status-badge status-neutral"
+                                    id="resultVisibilityBadge"
+                                >
+                                    —
+                                </span>
+
+                            </div>
+
+
+                            <div class="result-setting-row">
+
+                                <div class="result-setting-copy">
+
+                                    <strong>
+                                        Result Downloads
+                                    </strong>
+
+                                    <span>
+                                        Controls whether result downloads
+                                        are enabled.
+                                    </span>
+
+                                </div>
+
+                                <span
+                                    class="status-badge status-neutral"
+                                    id="resultDownloadBadge"
+                                >
+                                    —
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =============================================
+                         SCHEDULE
+                         ============================================= -->
+
+                    <section class="detail-card card">
+
+                        <div class="detail-card-header">
+
+                            <div>
+                                <span class="detail-card-eyebrow">
+                                    Timing
+                                </span>
+
+                                <h2>
+                                    Schedule
+                                </h2>
+                            </div>
+
+                        </div>
+
+
+                        <div class="schedule-list">
+
+                            <div class="schedule-item">
+
+                                <div class="schedule-marker">
+                                    <span></span>
+                                </div>
+
+                                <div class="schedule-content">
+
+                                    <span class="schedule-label">
+                                        Registration Opens
+                                    </span>
+
+                                    <strong id="registrationStart">
+                                        —
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="schedule-item">
+
+                                <div class="schedule-marker">
+                                    <span></span>
+                                </div>
+
+                                <div class="schedule-content">
+
+                                    <span class="schedule-label">
+                                        Registration Closes
+                                    </span>
+
+                                    <strong id="registrationEnd">
+                                        —
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="schedule-item">
+
+                                <div class="schedule-marker">
+                                    <span></span>
+                                </div>
+
+                                <div class="schedule-content">
+
+                                    <span class="schedule-label">
+                                        Exam Starts
+                                    </span>
+
+                                    <strong id="examStart">
+                                        —
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="schedule-item">
+
+                                <div class="schedule-marker">
+                                    <span></span>
+                                </div>
+
+                                <div class="schedule-content">
+
+                                    <span class="schedule-label">
+                                        Exam Ends
+                                    </span>
+
+                                    <strong id="examEnd">
+                                        —
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =============================================
+                         DESCRIPTION
+                         ============================================= -->
+
+                    <section class="detail-card card description-card">
+
+                        <div class="detail-card-header">
+
+                            <div>
+                                <span class="detail-card-eyebrow">
+                                    Details
+                                </span>
+
+                                <h2>
+                                    Description
+                                </h2>
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="program-description"
+                            id="programDescription"
+                        >
+                            —
+                        </div>
+
+                    </section>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="./js/admin.js"></script>
+    <script src="./js/program-details.js"></script>
+
+</body>
+</html>

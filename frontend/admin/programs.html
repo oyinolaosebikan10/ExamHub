@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Programs | ExamHub Administration</title>
+
+    <link rel="stylesheet" href="../css/global.css" />
+    <link rel="stylesheet" href="./css/admin.css" />
+    <link rel="stylesheet" href="./css/programs.css" />
+</head>
+
+<body>
+
+    <div class="admin-app">
+
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <!-- Rendered by admin.js -->
+        </aside>
+
+        <!-- Main Area -->
+        <div class="admin-main">
+
+            <!-- Header -->
+            <header class="admin-header" id="adminHeader">
+                <!-- Rendered by admin.js -->
+            </header>
+
+            <main class="admin-content programs-page">
+
+                <!-- Page Header -->
+                <section class="programs-page-header">
+
+                    <div class="programs-heading-content">
+
+                        <div class="breadcrumb">
+                            <span>Academic Management</span>
+                            <span class="breadcrumb-separator">/</span>
+                            <strong>Programs</strong>
+                        </div>
+
+                        <div>
+                            <h1>Programs</h1>
+
+                            <p>
+                                Create, schedule, and manage examination programs,
+                                registration periods, venues, and result access.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        id="openCreateProgramBtn"
+                    >
+                        <span class="button-icon" aria-hidden="true">+</span>
+                        <span>Create Program</span>
+                    </button>
+
+                </section>
+
+
+                <!-- Program Summary -->
+                <section class="program-summary-grid" aria-label="Program overview">
+
+                    <article class="program-summary-card">
+                        <div class="summary-card-label">
+                            Total Programs
+                        </div>
+
+                        <div
+                            class="summary-card-value"
+                            id="totalPrograms"
+                        >
+                            0
+                        </div>
+
+                        <div class="summary-card-meta">
+                            All examination programs
+                        </div>
+                    </article>
+
+
+                    <article class="program-summary-card">
+                        <div class="summary-card-label">
+                            Registration Open
+                        </div>
+
+                        <div
+                            class="summary-card-value"
+                            id="registrationOpenPrograms"
+                        >
+                            0
+                        </div>
+
+                        <div class="summary-card-meta">
+                            Currently accepting registration
+                        </div>
+                    </article>
+
+
+                    <article class="program-summary-card">
+                        <div class="summary-card-label">
+                            Upcoming
+                        </div>
+
+                        <div
+                            class="summary-card-value"
+                            id="upcomingPrograms"
+                        >
+                            0
+                        </div>
+
+                        <div class="summary-card-meta">
+                            Not yet started
+                        </div>
+                    </article>
+
+
+                    <article class="program-summary-card">
+                        <div class="summary-card-label">
+                            Ongoing
+                        </div>
+
+                        <div
+                            class="summary-card-value"
+                            id="ongoingPrograms"
+                        >
+                            0
+                        </div>
+
+                        <div class="summary-card-meta">
+                            Currently in progress
+                        </div>
+                    </article>
+
+                </section>
+
+
+                <!-- Main Management Card -->
+                <section class="program-management-card">
+
+                    <div class="management-header">
+
+                        <div>
+                            <div class="management-title-row">
+                                <h2>All Programs</h2>
+
+                                <span
+                                    class="program-count"
+                                    id="programCount"
+                                >
+                                    0 programs
+                                </span>
+                            </div>
+
+                            <p>
+                                Manage program schedules, venues, lifecycle status,
+                                and result access.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Toolbar -->
+                    <div class="program-toolbar">
+
+                        <div class="program-search">
+
+                            <span
+                                class="search-icon"
+                                aria-hidden="true"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <circle cx="11" cy="11" r="7"></circle>
+                                    <path d="m20 20-4-4"></path>
+                                </svg>
+                            </span>
+
+                            <input
+                                type="search"
+                                id="programSearch"
+                                placeholder="Search programs..."
+                                autocomplete="off"
+                            />
+
+                        </div>
+
+
+                        <div class="program-filter">
+
+                            <label for="statusFilter">
+                                Schedule
+                            </label>
+
+                            <select id="statusFilter">
+
+                                <option value="all">
+                                    All statuses
+                                </option>
+
+                                <option value="upcoming">
+                                    Upcoming
+                                </option>
+
+                                <option value="registration-open">
+                                    Registration open
+                                </option>
+
+                                <option value="registration-closed">
+                                    Registration closed
+                                </option>
+
+                                <option value="ongoing">
+                                    Ongoing
+                                </option>
+
+                                <option value="completed">
+                                    Completed
+                                </option>
+
+                                <option value="invalid">
+                                    Invalid
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="program-filter">
+
+                            <label for="lifecycleFilter">
+                                Lifecycle
+                            </label>
+
+                            <select id="lifecycleFilter">
+                                <option value="all">All states</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="secondary-button refresh-button"
+                            id="refreshProgramsBtn"
+                        >
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M20 11a8.1 8.1 0 0 0-15.5-2"></path>
+                                <path d="M4 5v4h4"></path>
+                                <path d="M4 13a8.1 8.1 0 0 0 15.5 2"></path>
+                                <path d="M20 19v-4h-4"></path>
+                            </svg>
+
+                            <span>Refresh</span>
+                        </button>
+
+                    </div>
+
+                    <!-- Loading -->
+                    <div
+                        class="programs-loading-state"
+                        id="programsLoading"
+                        aria-live="polite"
+                    >
+                        <div class="loading-spinner"></div>
+                        <span>Loading programs...</span>
+                    </div>
+
+
+                    <!-- Table -->
+                    <div
+                        class="program-table-wrapper"
+                        id="programsTableWrapper"
+                    >
+
+                        <table class="program-table">
+
+                            <thead>
+                                <tr>
+
+                                    <th class="program-column">
+                                        Program
+                                    </th>
+
+                                    <th class="venue-column">
+                                        School / Venue
+                                    </th>
+
+                                    <th class="period-column">
+                                        Registration
+                                    </th>
+
+                                    <th class="period-column">
+                                        Examination
+                                    </th>
+
+                                    <th class="status-column">
+                                        Schedule status
+                                    </th>
+
+                                    <th class="lifecycle-column">
+                                        Lifecycle
+                                    </th>
+
+                                    <th class="results-column">
+                                        Results
+                                    </th>
+
+                                    <th class="actions-column">
+                                        Actions
+                                    </th>
+
+                                </tr>
+                            </thead>
+
+                            <tbody id="programsTableBody">
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <!-- Empty -->
+                    <div
+                        class="programs-empty-state hidden"
+                        id="programsEmpty"
+                    >
+
+                        <div class="empty-state-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            >
+                                <rect
+                                    x="3"
+                                    y="4"
+                                    width="18"
+                                    height="16"
+                                    rx="2"
+                                ></rect>
+                                <path d="M8 9h8"></path>
+                                <path d="M8 13h5"></path>
+                            </svg>
+                        </div>
+
+                        <h3>No programs found</h3>
+
+                        <p>
+                            There are no programs matching your current search
+                            or filter.
+                        </p>
+
+                        <button
+                            type="button"
+                            class="primary-button"
+                            id="emptyCreateProgramBtn"
+                        >
+                            Create Program
+                        </button>
+
+                    </div>
+
+
+                    <!-- Error -->
+                    <div
+                        class="programs-error-state hidden"
+                        id="programsError"
+                        aria-live="assertive"
+                    >
+
+                        <div class="error-state-icon">
+                            !
+                        </div>
+
+                        <h3>Unable to load programs</h3>
+
+                        <p id="programsErrorText">
+                            Something went wrong while loading the programs.
+                        </p>
+
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            id="retryProgramsBtn"
+                        >
+                            Try Again
+                        </button>
+
+                    </div>
+
+                </section>
+
+                <div
+                    class="program-toast hidden"
+                    id="programLifecycleToast"
+                    role="status"
+                    aria-live="polite"
+                ></div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+
+    <!-- Create / Edit Program Modal -->
+    <div
+        class="modal-backdrop hidden"
+        id="programModal"
+        aria-hidden="true"
+    >
+
+        <div
+            class="program-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="programModalTitle"
+        >
+
+            <div class="modal-header">
+
+                <div>
+                    <h2 id="programModalTitle">
+                        Create Program
+                    </h2>
+
+                    <p id="programModalDescription">
+                        Set up the program information, schedule, venue,
+                        and result access.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    id="closeProgramModalBtn"
+                    aria-label="Close modal"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="programForm" novalidate>
+
+                <input
+                    type="hidden"
+                    id="programId"
+                />
+
+
+                <!-- 01 Program Information -->
+                <section class="form-section">
+
+                    <div class="form-section-heading">
+
+                        <span class="form-section-number">
+                            01
+                        </span>
+
+                        <div>
+                            <h3>Program Information</h3>
+                            <p>
+                                Basic information used to identify the program.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-group form-group-full">
+
+                            <label for="programName">
+                                Program name
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="programName"
+                                placeholder="e.g. 2026 Web Design Certification Examination"
+                                maxlength="150"
+                                required
+                            />
+
+                        </div>
+
+
+                        <div class="form-group form-group-full">
+
+                            <label for="programDescription">
+                                Description
+                            </label>
+
+                            <textarea
+                                id="programDescription"
+                                rows="4"
+                                maxlength="1000"
+                                placeholder="Briefly describe this examination program..."
+                            ></textarea>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- 02 School / Venue -->
+                <section class="form-section">
+
+                    <div class="form-section-heading">
+
+                        <span class="form-section-number">
+                            02
+                        </span>
+
+                        <div>
+                            <h3>Venue &amp; Hosting</h3>
+                            <p>
+                                Choose where the examination program will be hosted.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+
+                            <label for="venueType">
+                                Venue type
+                                <span class="required">*</span>
+                            </label>
+
+                            <select id="venueType" required>
+
+                                <option value="">
+                                    Select venue type
+                                </option>
+
+                                <option value="school">
+                                    School
+                                </option>
+
+                                <option value="organization">
+                                    Organization Facility
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div
+                            class="form-group hidden"
+                            id="schoolFieldGroup"
+                        >
+
+                            <label for="schoolId">
+                                School
+                                <span class="required">*</span>
+                            </label>
+
+                            <select id="schoolId">
+
+                                <option value="">
+                                    Select school
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- 03 Registration -->
+                <section class="form-section">
+
+                    <div class="form-section-heading">
+
+                        <span class="form-section-number">
+                            03
+                        </span>
+
+                        <div>
+                            <h3>Registration Period</h3>
+                            <p>
+                                Control when students can register for the program.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+
+                            <label for="registrationStart">
+                                Registration starts
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="registrationStart"
+                                required
+                            />
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registrationEnd">
+                                Registration ends
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="registrationEnd"
+                                required
+                            />
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- 04 Examination -->
+                <section class="form-section">
+
+                    <div class="form-section-heading">
+
+                        <span class="form-section-number">
+                            04
+                        </span>
+
+                        <div>
+                            <h3>Examination Period</h3>
+                            <p>
+                                Define when the examination becomes available.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+
+                            <label for="examStart">
+                                Examination starts
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="examStart"
+                                required
+                            />
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="examEnd">
+                                Examination ends
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="examEnd"
+                                required
+                            />
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- 05 Results -->
+                <section class="form-section">
+
+                    <div class="form-section-heading">
+
+                        <span class="form-section-number">
+                            05
+                        </span>
+
+                        <div>
+                            <h3>Result Access</h3>
+                            <p>
+                                Control whether students can see and download
+                                their results.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="result-settings">
+
+                        <div class="setting-row">
+
+                            <div class="setting-copy">
+
+                                <strong>
+                                    Result visibility
+                                </strong>
+
+                                <span>
+                                    Choose whether results are visible to students.
+                                </span>
+
+                            </div>
+
+                            <select id="resultVisibility">
+
+                                <option value="hidden">
+                                    Hidden
+                                </option>
+
+                                <option value="visible">
+                                    Visible
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="setting-row">
+
+                            <div class="setting-copy">
+
+                                <strong>
+                                    Result downloads
+                                </strong>
+
+                                <span>
+                                    Allow students to download their result
+                                    when results are visible.
+                                </span>
+
+                            </div>
+
+                            <label class="toggle-control">
+
+                                <input
+                                    type="checkbox"
+                                    id="resultDownloadEnabled"
+                                />
+
+                                <span class="toggle-slider"></span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- Form Message -->
+                <div
+                    class="form-message hidden"
+                    id="programFormMessage"
+                    role="alert"
+                ></div>
+
+
+                <!-- Actions -->
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        id="cancelProgramBtn"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="saveProgramBtn"
+                    >
+
+                        <span id="saveProgramText">
+                            Create Program
+                        </span>
+
+                        <span
+                            id="saveProgramSpinner"
+                            class="save-spinner hidden"
+                            aria-hidden="true"
+                        ></span>
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div
+        class="modal-backdrop hidden"
+        id="programLifecycleConfirmModal"
+        aria-hidden="true"
+    >
+        <section
+            class="program-modal program-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="programLifecycleConfirmTitle"
+            aria-describedby="programLifecycleConfirmMessage"
+        >
+            <div class="program-confirm-content">
+                <span class="program-confirm-eyebrow">Confirmation required</span>
+                <h2 id="programLifecycleConfirmTitle">Confirm program action</h2>
+                <p id="programLifecycleConfirmMessage"></p>
+                <p
+                    class="program-confirm-error hidden"
+                    id="programLifecycleConfirmError"
+                    role="alert"
+                ></p>
+            </div>
+            <div class="modal-actions program-confirm-actions">
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelProgramLifecycleBtn"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="confirmProgramLifecycleBtn"
+                >
+                    <span id="confirmProgramLifecycleText">Confirm</span>
+                    <span
+                        class="save-spinner hidden"
+                        id="confirmProgramLifecycleSpinner"
+                        aria-hidden="true"
+                    ></span>
+                </button>
+            </div>
+        </section>
+    </div>
+
+
+    <script src="./js/admin.js"></script>
+    <script src="./js/programs.js"></script>
+
+</body>
+</html>

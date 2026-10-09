@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Enrollments | ExamHub Administration</title>
+
+    <link rel="stylesheet" href="../css/global.css" />
+    <link rel="stylesheet" href="./css/admin.css" />
+    <link rel="stylesheet" href="./css/enrollments.css" />
+</head>
+
+<body>
+    <div class="admin-app">
+        <aside class="admin-sidebar" id="adminSidebar"></aside>
+
+        <div class="admin-main">
+            <header class="admin-header" id="adminHeader"></header>
+
+            <main class="admin-content enrollments-page">
+                <section class="enrollments-page-header">
+                    <div class="enrollments-heading-content">
+                        <div class="enrollments-breadcrumb">
+                            <span>Academic Management</span>
+                            <span aria-hidden="true">/</span>
+                            <strong>Enrollments</strong>
+                        </div>
+                        <h1>Enrollments</h1>
+                        <p>
+                            Manage student participation in examination programs
+                            and courses.
+                        </p>
+                    </div>
+
+                    <div class="enrollments-header-actions">
+                        <button
+                            type="button"
+                            class="enrollment-button enrollment-button-secondary"
+                            id="refreshEnrollmentsButton"
+                        >Refresh</button>
+                        <button
+                            type="button"
+                            class="enrollment-button enrollment-button-primary"
+                            id="createEnrollmentButton"
+                        >
+                            <span aria-hidden="true">+</span>
+                            <span>Create Enrollment</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="enrollment-summary-grid" aria-label="Enrollment overview">
+                    <article class="enrollment-summary-card">
+                        <span>Total Enrollments</span>
+                        <strong id="totalEnrollments">—</strong>
+                        <small>All student program-course records</small>
+                    </article>
+                    <article class="enrollment-summary-card">
+                        <span>Active</span>
+                        <strong id="activeEnrollments">—</strong>
+                        <small>Currently eligible enrollment state</small>
+                    </article>
+                    <article class="enrollment-summary-card">
+                        <span>Inactive</span>
+                        <strong id="inactiveEnrollments">—</strong>
+                        <small>Not currently eligible</small>
+                    </article>
+                </section>
+
+                <section class="enrollment-management-card" aria-labelledby="enrollmentListTitle">
+                    <div class="enrollment-management-header">
+                        <div>
+                            <div class="enrollment-title-row">
+                                <h2 id="enrollmentListTitle">All Enrollments</h2>
+                                <span class="enrollment-count" id="enrollmentCount">—</span>
+                            </div>
+                            <p>Search, review, and manage student enrollments.</p>
+                        </div>
+                    </div>
+
+                    <div class="enrollment-toolbar">
+                        <label class="enrollment-search">
+                            <span aria-hidden="true">⌕</span>
+                            <input
+                                type="search"
+                                id="enrollmentSearch"
+                                aria-label="Search enrollments"
+                                placeholder="Search student, registration number, course, or program"
+                                autocomplete="off"
+                            />
+                        </label>
+
+                        <label class="enrollment-filter">
+                            <span>Status</span>
+                            <select id="enrollmentStatusFilter" aria-label="Filter enrollments by status">
+                                <option value="all">All statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="other">Other statuses</option>
+                            </select>
+                        </label>
+
+                        <label class="enrollment-filter">
+                            <span>Course</span>
+                            <select id="enrollmentCourseFilter" aria-label="Filter enrollments by course">
+                                <option value="all">All courses</option>
+                            </select>
+                        </label>
+
+                        <label class="enrollment-filter">
+                            <span>Program</span>
+                            <select id="enrollmentProgramFilter" aria-label="Filter enrollments by program">
+                                <option value="all">All programs</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="enrollment-state" id="enrollmentsLoadingState" role="status">
+                        <span class="enrollment-spinner" aria-hidden="true"></span>
+                        <span>Loading enrollments...</span>
+                    </div>
+
+                    <div class="enrollment-state enrollment-error-state" id="enrollmentsErrorState" role="alert" hidden>
+                        <span class="enrollment-state-icon" aria-hidden="true">!</span>
+                        <h3>Unable to load enrollments</h3>
+                        <p id="enrollmentsErrorMessage">
+                            We couldn't retrieve enrollment records. Please try again.
+                        </p>
+                        <button
+                            type="button"
+                            class="enrollment-button enrollment-button-secondary"
+                            id="retryEnrollmentsButton"
+                        >Try Again</button>
+                    </div>
+
+                    <div class="enrollment-state enrollment-empty-state" id="enrollmentsEmptyState" hidden>
+                        <span class="enrollment-state-icon" aria-hidden="true">—</span>
+                        <h3 id="enrollmentsEmptyTitle">No enrollments yet</h3>
+                        <p id="enrollmentsEmptyMessage">
+                            Create an enrollment to associate a student with a program and course.
+                        </p>
+                        <button
+                            type="button"
+                            class="enrollment-button enrollment-button-primary"
+                            id="emptyCreateEnrollmentButton"
+                        >Create Enrollment</button>
+                        <button
+                            type="button"
+                            class="enrollment-button enrollment-button-secondary"
+                            id="clearEnrollmentFiltersButton"
+                            hidden
+                        >Clear search and filters</button>
+                    </div>
+
+                    <div class="enrollment-table-wrapper" id="enrollmentsTableWrapper" hidden>
+                        <table class="enrollment-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Student</th>
+                                    <th scope="col">Registration No.</th>
+                                    <th scope="col">Course</th>
+                                    <th scope="col">Program</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Start Date</th>
+                                    <th scope="col">End Date</th>
+                                    <th scope="col">Created</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="enrollmentsTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="enrollment-toast" id="enrollmentToast" role="status" aria-live="polite" hidden></div>
+                </section>
+            </main>
+        </div>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    </div>
+
+    <div class="enrollment-modal-backdrop" id="enrollmentFormModal" aria-hidden="true" hidden>
+        <section class="enrollment-modal enrollment-form-modal" role="dialog" aria-modal="true" aria-labelledby="enrollmentFormTitle">
+            <header class="enrollment-modal-header">
+                <div>
+                    <span class="enrollment-modal-eyebrow">Enrollment management</span>
+                    <h2 id="enrollmentFormTitle">Create Enrollment</h2>
+                    <p id="enrollmentFormDescription">Assign a student to a program and course.</p>
+                </div>
+                <button type="button" class="enrollment-modal-close" data-close-modal aria-label="Close dialog">×</button>
+            </header>
+
+            <form id="enrollmentForm" novalidate>
+                <div class="enrollment-form-body">
+                    <p class="enrollment-form-message" id="enrollmentFormMessage" role="alert" hidden></p>
+
+                    <label class="enrollment-form-field" for="enrollmentStudent">
+                        <span>Student <b aria-hidden="true">*</b></span>
+                        <select id="enrollmentStudent" required>
+                            <option value="">Select a student</option>
+                        </select>
+                    </label>
+
+                    <div class="enrollment-form-grid">
+                        <label class="enrollment-form-field" for="enrollmentCourse">
+                            <span>Course <b aria-hidden="true">*</b></span>
+                            <select id="enrollmentCourse" required>
+                                <option value="">Select a course</option>
+                            </select>
+                        </label>
+
+                        <label class="enrollment-form-field" for="enrollmentProgram">
+                            <span>Program <b aria-hidden="true">*</b></span>
+                            <select id="enrollmentProgram" required>
+                                <option value="">Select a program</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <label class="enrollment-form-field" for="enrollmentDuration">
+                        <span>Program duration <small>(optional)</small></span>
+                        <input id="enrollmentDuration" type="text" maxlength="100" placeholder="For example, 12 weeks" />
+                    </label>
+
+                    <div class="enrollment-form-grid">
+                        <label class="enrollment-form-field" for="enrollmentStartDate">
+                            <span>Start date <small>(optional)</small></span>
+                            <input id="enrollmentStartDate" type="date" />
+                        </label>
+                        <label class="enrollment-form-field" for="enrollmentEndDate">
+                            <span>End date <small>(optional)</small></span>
+                            <input id="enrollmentEndDate" type="date" />
+                        </label>
+                    </div>
+                </div>
+
+                <footer class="enrollment-modal-actions">
+                    <button type="button" class="enrollment-button enrollment-button-secondary" data-close-modal>Cancel</button>
+                    <button type="submit" class="enrollment-button enrollment-button-primary" id="saveEnrollmentButton">
+                        <span id="saveEnrollmentButtonText">Create Enrollment</span>
+                        <span class="enrollment-inline-spinner" id="saveEnrollmentSpinner" aria-hidden="true" hidden></span>
+                    </button>
+                </footer>
+            </form>
+        </section>
+    </div>
+
+    <div class="enrollment-modal-backdrop" id="enrollmentViewModal" aria-hidden="true" hidden>
+        <section class="enrollment-modal enrollment-view-modal" role="dialog" aria-modal="true" aria-labelledby="enrollmentViewTitle">
+            <header class="enrollment-modal-header">
+                <div>
+                    <span class="enrollment-modal-eyebrow">Enrollment record</span>
+                    <h2 id="enrollmentViewTitle">Enrollment Details</h2>
+                    <p id="enrollmentViewSubtitle">Enrollment information</p>
+                </div>
+                <button type="button" class="enrollment-modal-close" data-close-modal aria-label="Close dialog">×</button>
+            </header>
+            <dl class="enrollment-detail-list" id="enrollmentViewDetails"></dl>
+            <footer class="enrollment-modal-actions">
+                <button type="button" class="enrollment-button enrollment-button-secondary" data-close-modal>Close</button>
+            </footer>
+        </section>
+    </div>
+
+    <div class="enrollment-modal-backdrop" id="enrollmentConfirmModal" aria-hidden="true" hidden>
+        <section class="enrollment-modal enrollment-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="enrollmentConfirmTitle">
+            <span class="enrollment-confirm-icon" aria-hidden="true" id="enrollmentConfirmIcon">!</span>
+            <span class="enrollment-modal-eyebrow">Confirmation required</span>
+            <h2 id="enrollmentConfirmTitle">Confirm enrollment action</h2>
+            <p id="enrollmentConfirmMessage"></p>
+            <p class="enrollment-confirm-error" id="enrollmentConfirmError" role="alert" hidden></p>
+            <footer class="enrollment-modal-actions">
+                <button type="button" class="enrollment-button enrollment-button-secondary" id="cancelEnrollmentActionButton">Keep enrollment</button>
+                <button type="button" class="enrollment-button enrollment-button-primary" id="confirmEnrollmentActionButton">
+                    <span id="confirmEnrollmentActionText">Confirm</span>
+                    <span class="enrollment-inline-spinner" id="confirmEnrollmentSpinner" aria-hidden="true" hidden></span>
+                </button>
+            </footer>
+        </section>
+    </div>
+
+    <script src="./js/admin.js"></script>
+    <script src="./js/enrollments.js"></script>
+</body>
+</html>
