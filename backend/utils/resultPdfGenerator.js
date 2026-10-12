@@ -202,6 +202,7 @@ const generateTableReportPdf = ({
     schoolContact = "",
     examName = "",
     courseName = "",
+    scopeLabel = "",
     reportType = "school"
 }) => {
 
@@ -270,6 +271,15 @@ const generateTableReportPdf = ({
 
     doc.moveDown(0.6);
 
+    if (scopeLabel) {
+        doc
+            .font("Helvetica")
+            .fontSize(9)
+            .text(scopeLabel, {
+                align: "center"
+            });
+    }
+
     if (reportType === "course" && courseName) {
 
         doc
@@ -330,12 +340,12 @@ const generateTableReportPdf = ({
         {
             label: "Student",
             key: "fullName",
-            width: 125
+            width: 108
         },
         {
             label: "Reg. No.",
             key: "registrationNumber",
-            width: 88
+            width: 80
         }
     );
 
@@ -345,13 +355,13 @@ const generateTableReportPdf = ({
         columns.push({
             label: "Course",
             key: "courseName",
-            width: 105
+            width: 95
         });
 
         columns.push({
             label: "Exam",
             key: "examName",
-            width: 100
+            width: 94
         });
     }
 
@@ -381,9 +391,14 @@ const generateTableReportPdf = ({
             width: 45
         },
         {
+            label: "Attempt",
+            key: "attemptNumber",
+            width: 43
+        },
+        {
             label: "%",
             key: "percentage",
-            width: 45
+            width: 40
         }
     );
 
@@ -838,6 +853,12 @@ const doc = new PDFDocument({
         doc,
         "Submission Status",
         "Submitted"
+    );
+
+    drawKeyValue(
+        doc,
+        "Attempt",
+        `${Math.max(1, Number(result.attemptNumber) || 1)}`
     );
 
 

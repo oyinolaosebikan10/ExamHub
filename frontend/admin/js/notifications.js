@@ -18,6 +18,7 @@ const notificationsPageElements = {
 
 let adminNotifications = [];
 let notificationsLoading = false;
+let notificationRequestVersion = 0;
 
 const formatNotificationDate = (value) => {
     if (!value) {
@@ -184,6 +185,7 @@ const renderAdminNotifications = () => {
 };
 
 const loadAdminNotifications = async () => {
+    const requestVersion = ++notificationRequestVersion;
     setNotificationsLoading(true);
     adminNotifications = [];
     notificationsPageElements.error.hidden = true;
@@ -196,6 +198,10 @@ const loadAdminNotifications = async () => {
             "/notifications?limit=50"
         );
 
+        if (requestVersion !== notificationRequestVersion) {
+            return;
+        }
+
         if (
             response?.success !== true ||
             !Array.isArray(response?.data)
@@ -207,8 +213,13 @@ const loadAdminNotifications = async () => {
 
         adminNotifications = response.data;
         renderAdminNotifications();
+        notificationsPageElements.error.hidden = true;
+        showNotificationsFeedback("");
         await refreshAdminNotificationCount();
     } catch (error) {
+        if (requestVersion !== notificationRequestVersion) {
+            return;
+        }
         console.error(
             "Load admin notifications error:",
             error
@@ -221,7 +232,9 @@ const loadAdminNotifications = async () => {
             true
         );
     } finally {
-        setNotificationsLoading(false);
+        if (requestVersion === notificationRequestVersion) {
+            setNotificationsLoading(false);
+        }
     }
 };
 

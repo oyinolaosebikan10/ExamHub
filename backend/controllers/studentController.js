@@ -6,7 +6,9 @@ const {
     studentsCollection,
     generateRegistrationNumber,
     updateStudentStatus,
-    getStudentProfile
+    getStudentProfile,
+    getAdminStudentDirectory,
+    getAdminStudentDetails
 } = require("../services/studentService");
 
 const {
@@ -358,27 +360,25 @@ const getAllStudents =
     ) => {
 
         try {
+            const status = req.query.status || "all";
 
-            const snapshot =
-                await studentsCollection
-                    .orderBy(
-                        "createdAt",
-                        "desc"
-                    )
-                    .get();
+            if (!["all", "active", "inactive"].includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Student status filter is invalid"
+                });
+            }
 
-
-            const students =
-                snapshot.docs.map(
-                    doc => ({
-
-                        id:
-                            doc.id,
-
-                        ...doc.data()
-
-                    })
-                );
+            const directory = await getAdminStudentDirectory({
+                search: req.query.search,
+                status,
+                programId: req.query.programId,
+                schoolId: req.query.schoolId,
+                organization: req.query.organization,
+                studentId: req.query.studentId,
+                page: req.query.page,
+                limit: req.query.limit
+            });
 
 
             return res.status(200).json({
@@ -386,10 +386,16 @@ const getAllStudents =
                 success: true,
 
                 count:
-                    students.length,
+                    directory.count,
+
+                summary:
+                    directory.summary,
+
+                pagination:
+                    directory.pagination,
 
                 data:
-                    students
+                    directory.data
 
             });
 
@@ -412,6 +418,147 @@ const getAllStudents =
         }
     };
 
+const exportStudentsController = async (req, res) => {
+    try {
+        const status = req.query.status || "all";
+
+        if (!["all", "active", "inactive"].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: "Student status filter is invalid"
+            });
+        }
+
+        const directory = await getAdminStudentDirectory({
+            search: req.query.search,
+            status,
+            programId: req.query.programId,
+            schoolId: req.query.schoolId,
+            organization: req.query.organization,
+            studentId: req.query.studentId,
+            paginate: false
+        });
+
+        const csvCell = (value) => {
+            let text = String(value ?? "");
+
+            if (/^[\s]*[=+\-@]/.test(text)) {
+                text = `'${text}`;
+            }
+
+            return `"${text.replace(/"/g, '""')}"`;
+        };
+        const headings = [
+            "Student ID",
+            "Full name",
+            "Registration number",
+            "Phone number",
+            "Course ID",
+            "Status",
+            "Programs",
+            "Schools",
+            "Organization-hosted programs",
+            "Registered"
+        ];
+        const selectedStudent = directory.data[0];
+        const selectedAssociations = directory.data.flatMap(
+            (student) => student.associations || []
+        );
+        const scopeParts = [];
+
+        if (req.query.search) {
+            scopeParts.push(`Search: ${req.query.search}`);
+        }
+        if (status !== "all") {
+            scopeParts.push(`Status: ${status}`);
+        }
+        if (req.query.programId) {
+            const association = selectedAssociations.find(
+                (item) => item.programId === req.query.programId
+            );
+            scopeParts.push(
+                `Program: ${association?.programName || req.query.programId}`
+            );
+        }
+        if (req.query.schoolId) {
+            const association = selectedAssociations.find(
+                (item) => item.schoolId === req.query.schoolId
+            );
+            scopeParts.push(
+                `School: ${association?.schoolName || req.query.schoolId}`
+            );
+        }
+        if (req.query.organization) {
+            scopeParts.push("Organization-hosted program participants");
+        }
+        if (req.query.studentId) {
+            scopeParts.push(
+                `Student: ${selectedStudent?.fullName || req.query.studentId}`
+            );
+        }
+
+        const rows = directory.data.map((student) => {
+            const associations = student.associations || [];
+
+            return [
+                student.id,
+                student.fullName,
+                student.registrationNumber,
+                student.phoneNumber,
+                student.courseId,
+                student.isActive === true
+                    ? "Active"
+                    : student.isActive === false
+                        ? "Inactive"
+                        : student.status || "Unknown",
+                [...new Set(
+                    associations
+                        .map((item) => item.programName)
+                        .filter(Boolean)
+                )].join("; "),
+                [...new Set(
+                    associations
+                        .map((item) => item.schoolName)
+                        .filter(Boolean)
+                )].join("; "),
+                [...new Set(
+                    associations
+                        .filter((item) =>
+                            item.venueType === "organization"
+                        )
+                        .map((item) => item.programName)
+                        .filter(Boolean)
+                )].join("; "),
+                student.createdAt?.toDate
+                    ? student.createdAt.toDate().toISOString()
+                    : student.createdAt || ""
+            ];
+        });
+        const csv = [
+            ["Report scope", scopeParts.join(" | ") || "All students"],
+            ["Records", String(directory.count)],
+            [],
+            headings,
+            ...rows
+        ].map((row) => row.map(csvCell).join(",")).join("\r\n");
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader(
+            "Content-Disposition",
+            'attachment; filename="examhub-students.csv"'
+        );
+
+        return res.status(200).send(`\uFEFF${csv}`);
+    } catch (error) {
+        console.error("Export students error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to export student records"
+        });
+    }
+};
+
 
 // =========================================================
 // GET SINGLE STUDENT
@@ -430,13 +577,14 @@ const getSingleStudent =
             } = req.params;
 
 
-            const studentDoc =
-                await studentsCollection
-                    .doc(studentId)
-                    .get();
+            let student;
 
-
-            if (!studentDoc.exists) {
+            try {
+                student = await getAdminStudentDetails(studentId);
+            } catch (error) {
+                if (error.message !== "Student not found") {
+                    throw error;
+                }
 
                 return res.status(404).json({
 
@@ -454,11 +602,7 @@ const getSingleStudent =
                 success: true,
 
                 data: {
-
-                    id:
-                        studentDoc.id,
-
-                    ...studentDoc.data()
+                    ...student
 
                 }
 
@@ -554,6 +698,8 @@ module.exports = {
     updateStudentStatusController,
 
     getAllStudents,
+
+    exportStudentsController,
 
     getSingleStudent,
 

@@ -14,6 +14,9 @@ const {
 const {
     getProgramById
 } = require("./programService");
+const {
+    getSchoolById
+} = require("./schoolService");
 
 
 /*
@@ -75,6 +78,18 @@ const resolveProgram = async (programId) => {
     }
 };
 
+const resolveSchool = async (schoolId) => {
+    if (!schoolId) {
+        return null;
+    }
+
+    try {
+        return await getSchoolById(schoolId);
+    } catch (error) {
+        return null;
+    }
+};
+
 
 /*
 |--------------------------------------------------------------------------
@@ -94,7 +109,9 @@ const resolveProgram = async (programId) => {
 const getTableReportData = async ({
     examId,
     courseId,
-    studentId
+    studentId,
+    programId,
+    schoolId
 } = {}) => {
 
     const results = await getAllResults({
@@ -133,7 +150,6 @@ const getTableReportData = async ({
         )
     ];
 
-
     const examEntries = await Promise.all(
         examIds.map(async (id) => {
 
@@ -161,19 +177,60 @@ const getTableReportData = async ({
 
     const courses =
         Object.fromEntries(courseEntries);
+    const resolvedProgramIds = [
+        ...new Set(
+            Object.values(exams)
+                .map(exam => exam?.programId)
+                .filter(Boolean)
+        )
+    ];
+    const programEntries = await Promise.all(
+        resolvedProgramIds.map(async (id) => [
+            id,
+            await resolveProgram(id)
+        ])
+    );
+    const programs = Object.fromEntries(programEntries);
+    const schoolIds = [
+        ...new Set(
+            Object.values(programs)
+                .filter(program =>
+                    program?.venueType === "school"
+                )
+                .map(program => program.schoolId)
+                .filter(Boolean)
+        )
+    ];
+    const schoolEntries = await Promise.all(
+        schoolIds.map(async id => [
+            id,
+            await resolveSchool(id)
+        ])
+    );
+    const schools = Object.fromEntries(schoolEntries);
+
+    const filteredResults = results.filter(result => {
+        const exam = exams[result.examId];
+        const program = programs[exam?.programId];
+
+        return (!programId || program?.id === programId) &&
+            (!schoolId || program?.schoolId === schoolId);
+    });
 
 
     /*
      * Build the final report rows.
      */
 
-    return results.map((result, index) => {
+    return filteredResults.map((result, index) => {
 
         const exam =
             exams[result.examId] || null;
 
         const course =
             courses[result.courseId] || null;
+        const program =
+            programs[exam?.programId] || null;
 
 
         return {
@@ -200,6 +257,22 @@ const getTableReportData = async ({
                 exam?.title ||
                 "N/A",
 
+            programId:
+                program?.id || null,
+
+            programName:
+                program?.name || "N/A",
+
+            schoolId:
+                program?.venueType === "school"
+                    ? program.schoolId || null
+                    : null,
+
+            schoolName:
+                program?.venueType === "school"
+                    ? schools[program.schoolId]?.name || null
+                    : null,
+
             courseId:
                 result.courseId,
 
@@ -222,6 +295,9 @@ const getTableReportData = async ({
 
             percentage:
                 result.percentage,
+
+            attemptNumber:
+                result.attemptNumber || 1,
 
             submittedAt:
                 result.submittedAt
@@ -337,6 +413,9 @@ const getIndividualReportData = async (
 
             percentage:
                 result.percentage,
+
+            attemptNumber:
+                result.attemptNumber || 1,
 
             submittedAt:
                 result.submittedAt

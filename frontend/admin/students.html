@@ -117,6 +117,29 @@
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
+
+                        <div class="student-filter">
+                            <label for="studentProgramFilter">Program</label>
+                            <select id="studentProgramFilter" aria-label="Filter students by program">
+                                <option value="all">All programs</option>
+                            </select>
+                        </div>
+
+                        <div class="student-filter">
+                            <label for="studentSchoolFilter">School</label>
+                            <select id="studentSchoolFilter" aria-label="Filter students by school">
+                                <option value="all">All schools</option>
+                            </select>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            id="exportStudentsBtn"
+                            disabled
+                        >
+                            Export directory CSV
+                        </button>
                     </div>
 
                     <div class="students-loading-state" id="studentsLoading" role="status">
@@ -140,6 +163,23 @@
                             <tbody id="studentsTableBody"></tbody>
                         </table>
                     </div>
+
+                    <div class="students-pagination hidden" id="studentsPagination">
+                        <button type="button" class="secondary-button" id="previousStudentsPageBtn">
+                            Previous
+                        </button>
+                        <span id="studentsPageLabel" aria-live="polite">Page 1 of 1</span>
+                        <button type="button" class="secondary-button" id="nextStudentsPageBtn">
+                            Next
+                        </button>
+                    </div>
+
+                    <p
+                        class="students-export-feedback hidden"
+                        id="studentsExportFeedback"
+                        role="status"
+                        aria-live="polite"
+                    ></p>
 
                     <div class="students-empty-state hidden" id="studentsEmpty">
                         <div class="empty-state-icon" aria-hidden="true">

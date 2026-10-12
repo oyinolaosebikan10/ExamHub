@@ -1949,16 +1949,24 @@ function buildProgramPayload() {
                 : null,
 
         registrationStart:
-            registrationStart.value,
+            serializeDateTimeLocal(
+                registrationStart.value
+            ),
 
         registrationEnd:
-            registrationEnd.value,
+            serializeDateTimeLocal(
+                registrationEnd.value
+            ),
 
         examStart:
-            examStart.value,
+            serializeDateTimeLocal(
+                examStart.value
+            ),
 
         examEnd:
-            examEnd.value,
+            serializeDateTimeLocal(
+                examEnd.value
+            ),
 
         resultVisibility:
             visibility,
@@ -2539,6 +2547,21 @@ function toDateTimeLocal(
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 
+}
+
+
+function serializeDateTimeLocal(value) {
+    if (!value) {
+        return "";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "";
+    }
+
+    return date.toISOString();
 }
 
 

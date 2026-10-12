@@ -2,7 +2,6 @@
     "use strict";
 
     const STUDENTS_API_URL = "/students";
-    const COURSES_API_URL = "/courses";
     const NOT_AVAILABLE = "Not available";
 
     let studentId = null;
@@ -27,6 +26,9 @@
             ?.classList.add("active");
 
         retryButton?.addEventListener("click", loadStudentDetails);
+        document
+            .getElementById("exportStudentRecordButton")
+            ?.addEventListener("click", exportStudentRecord);
 
         const params = new URLSearchParams(window.location.search);
         studentId = params.get("id")?.trim() || null;
@@ -66,14 +68,9 @@
             }
 
             const record = response.data;
-            const courseId = normalizeIdentifier(record.courseId);
-            const courseName = courseId
-                ? await loadCourseName(courseId)
-                : NOT_AVAILABLE;
             const displayModel = createSafeDisplayModel(
                 record,
-                studentId,
-                courseName
+                studentId
             );
 
             renderStudent(displayModel);
@@ -109,46 +106,23 @@
         }
     }
 
-    async function loadCourseName(courseId) {
-        const response = await adminFetch(
-            COURSES_API_URL,
-            { method: "GET" }
-        );
-
-        if (!response?.success || !Array.isArray(response.data)) {
-            throw new Error("Unexpected courses response.");
-        }
-
-        const courseNames = createCourseNameMap(response.data);
-        return courseNames.get(courseId) || "Unknown course";
-    }
-
-    function createCourseNameMap(courses) {
-        const courseNames = new Map();
-
-        courses.forEach(course => {
-            const id = normalizeIdentifier(course?.id);
-            const name = getSafeString(course?.name);
-
-            if (id && name) {
-                courseNames.set(id, name);
-            }
-        });
-
-        return courseNames;
-    }
-
-    function createSafeDisplayModel(record, requestedId, courseName) {
+    function createSafeDisplayModel(record, requestedId) {
         return {
             studentId: normalizeIdentifier(record.id) || requestedId,
             fullName: getSafeString(record.fullName) || NOT_AVAILABLE,
             registrationNumber:
                 getSafeString(record.registrationNumber) || NOT_AVAILABLE,
             phoneNumber: getSafeString(record.phoneNumber) || NOT_AVAILABLE,
-            course: courseName || "Unknown course",
+            course: getSafeString(record.courseName) || NOT_AVAILABLE,
             accountStatus: getAccountStatus(record),
             createdAt: formatDate(record.createdAt),
-            updatedAt: formatDate(record.updatedAt)
+            updatedAt: formatDate(record.updatedAt),
+            associations: Array.isArray(record.associations)
+                ? record.associations
+                : [],
+            results: Array.isArray(record.results)
+                ? record.results
+                : []
         };
     }
 
@@ -259,7 +233,27 @@
         setText("studentAccountStatusDetail", student.accountStatus);
         setText("studentCreatedAt", student.createdAt);
         setText("studentUpdatedAt", student.updatedAt);
+        const associations = student.associations;
+        setText(
+            "studentPrograms",
+            uniqueLabels(associations, "programName")
+        );
+        setText(
+            "studentSchools",
+            uniqueLabels(associations, "schoolName")
+        );
+        setText(
+            "studentOrganizationPrograms",
+            uniqueLabels(
+                associations.filter(
+                    item => item.venueType === "organization"
+                ),
+                "programName"
+            )
+        );
         setText("studentInitials", getInitials(student.fullName));
+        renderStudentResults(student.results);
+        document.getElementById("exportStudentRecordButton").disabled = false;
 
         const statusClass = student.accountStatus === "Active"
             ? "status-success"
@@ -283,6 +277,192 @@
             .map(part => part.charAt(0).toUpperCase())
             .join("");
     }
+
+        function uniqueLabels(records, key) {
+            const labels = [
+                ...new Set(
+                    records
+                        .map(record => getSafeString(record?.[key]))
+                        .filter(Boolean)
+                )
+            ];
+
+            return labels.length ? labels.join(", ") : NOT_AVAILABLE;
+        }
+
+        function renderStudentResults(results) {
+            const list = document.getElementById("studentResultsList");
+            const empty = document.getElementById("studentResultsEmpty");
+
+            list.replaceChildren();
+            empty.hidden = results.length !== 0;
+
+            results.forEach(result => {
+                const item = document.createElement("article");
+                item.className = "student-result-row";
+
+                const details = document.createElement("div");
+                details.className = "student-result-details";
+
+                const title = document.createElement("strong");
+                title.textContent =
+                    getSafeString(result.examName) ||
+                    `Exam ${getSafeString(result.examId) || "unavailable"}`;
+
+                const attempt = Math.max(
+                    1,
+                    Number(result.attemptNumber) || 1
+                );
+                const score = document.createElement("span");
+                score.textContent =
+                    `${result.score ?? "—"} / ${result.totalMarks ?? "—"} · ${
+                        Number.isFinite(Number(result.percentage))
+                            ? `${Number(result.percentage)}%`
+                            : "—"
+                    } · Attempt ${attempt}`;
+
+                const submitted = document.createElement("time");
+                submitted.textContent = formatDate(result.submittedAt);
+                details.append(title, score, submitted);
+
+                const download = document.createElement("button");
+                download.type = "button";
+                download.className = "btn btn-secondary student-result-download";
+                download.textContent = "Download PDF";
+                download.addEventListener("click", () =>
+                    downloadStudentResultPdf(result.id, download)
+                );
+
+                item.append(details, download);
+                list.appendChild(item);
+            });
+        }
+
+        async function downloadStudentResultPdf(resultId, button) {
+            if (!resultId) {
+                return;
+            }
+
+            const feedback = document.getElementById(
+                "studentResultsFeedback"
+            );
+            button.disabled = true;
+            feedback.hidden = true;
+
+            try {
+                const token = getAdminToken();
+                if (!token) {
+                    throw new Error("Authentication required.");
+                }
+
+                const response = await fetch(
+                    `${ADMIN_API_BASE_URL}/results/reports/student/${encodeURIComponent(resultId)}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+
+                if (response.status === 401) {
+                    clearAdminSession();
+                    window.location.href = "./login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    let message = "The result PDF could not be downloaded.";
+                    try {
+                        const body = await response.json();
+                        message = body?.message || message;
+                    } catch {
+                        // Keep a clear fallback for non-JSON errors.
+                    }
+                    throw new Error(message);
+                }
+
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = objectUrl;
+                link.download = `result-${resultId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(objectUrl);
+            } catch (error) {
+                console.error("Student result PDF export error:", error);
+                feedback.textContent =
+                    error.message || "The result PDF could not be downloaded.";
+                feedback.hidden = false;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function exportStudentRecord() {
+            const button = document.getElementById(
+                "exportStudentRecordButton"
+            );
+            if (!studentId || !button) {
+                return;
+            }
+
+            button.disabled = true;
+            try {
+                const token = getAdminToken();
+                if (!token) {
+                    throw new Error("Authentication required.");
+                }
+
+                const query = new URLSearchParams({ studentId });
+                const response = await fetch(
+                    `${ADMIN_API_BASE_URL}${STUDENTS_API_URL}/export?${query}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+
+                if (response.status === 401) {
+                    clearAdminSession();
+                    window.location.href = "./login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    let message = "The student CSV could not be exported.";
+                    try {
+                        const body = await response.json();
+                        message = body?.message || message;
+                    } catch {
+                        // Keep the fallback for non-JSON responses.
+                    }
+                    throw new Error(message);
+                }
+
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = objectUrl;
+                link.download = "examhub-student.csv";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(objectUrl);
+            } catch (error) {
+                console.error("Student CSV export error:", error);
+                const feedback = document.getElementById(
+                    "studentResultsFeedback"
+                );
+                feedback.textContent =
+                    error.message || "The student CSV could not be exported.";
+                feedback.hidden = false;
+            } finally {
+                button.disabled = false;
+            }
+        }
 
     function setText(id, value) {
         const element = document.getElementById(id);

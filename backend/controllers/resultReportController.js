@@ -89,7 +89,9 @@ const downloadTableReport = async (req, res) => {
         const {
             examId,
             courseId,
-            studentId
+            studentId,
+            programId,
+            schoolId
         } = req.query;
 
 
@@ -97,7 +99,9 @@ const downloadTableReport = async (req, res) => {
             await getTableReportData({
                 examId,
                 courseId,
-                studentId
+                studentId,
+                programId,
+                schoolId
             });
 
 
@@ -117,6 +121,31 @@ const downloadTableReport = async (req, res) => {
             reportType = "exam";
         } else if (courseId) {
             reportType = "course";
+        }
+
+        const scopeParts = [];
+        if (examId) {
+            scopeParts.push(`Exam: ${results[0]?.examName || examId}`);
+        }
+        if (courseId) {
+            scopeParts.push(
+                `Course: ${results[0]?.courseName || courseId}`
+            );
+        }
+        if (programId) {
+            scopeParts.push(
+                `Program: ${results[0]?.programName || programId}`
+            );
+        }
+        if (schoolId) {
+            scopeParts.push(
+                `School: ${results[0]?.schoolName || schoolId}`
+            );
+        }
+        if (studentId) {
+            scopeParts.push(
+                `Student: ${results[0]?.fullName || results[0]?.registrationNumber || studentId}`
+            );
         }
 
 
@@ -153,7 +182,11 @@ const downloadTableReport = async (req, res) => {
 
                 courseName:
                     results[0]?.courseName ||
-                    ""
+                    "",
+
+                scopeLabel:
+                    scopeParts.join(" · ") ||
+                    "All persisted examination results"
             });
 
 

@@ -1,5 +1,8 @@
 const STUDENTS_API_URL = "/students";
 const COURSES_API_URL = "/courses";
+const PROGRAMS_API_URL = "/programs";
+const SCHOOLS_API_URL = "/schools";
+const STUDENT_PAGE_SIZE = 50;
 const STUDENT_FIELDS = [
     "fullName",
     "registrationNumber",
@@ -13,19 +16,29 @@ const STUDENT_FIELDS = [
 
 let students = [];
 let courseNames = new Map();
-let coursesLoaded = false;
+let programs = [];
+let schools = [];
+let currentPage = 1;
+let totalPages = 1;
+let studentSummary = null;
+let matchingStudentCount = 0;
+let studentRequestVersion = 0;
+let searchDebounce = null;
 let pendingStatusChange = null;
 let statusChangeInProgress = false;
 let lastStatusTrigger = null;
 
 const studentSearch = document.getElementById("studentSearch");
 const studentStatusFilter = document.getElementById("studentStatusFilter");
+const studentProgramFilter = document.getElementById("studentProgramFilter");
+const studentSchoolFilter = document.getElementById("studentSchoolFilter");
 const studentsTableBody = document.getElementById("studentsTableBody");
 const studentsTableWrapper = document.getElementById("studentsTableWrapper");
 const studentsLoading = document.getElementById("studentsLoading");
 const studentsEmpty = document.getElementById("studentsEmpty");
 const studentsError = document.getElementById("studentsError");
 const refreshStudentsBtn = document.getElementById("refreshStudentsBtn");
+const exportStudentsBtn = document.getElementById("exportStudentsBtn");
 
 const studentConfirmModal = document.getElementById("studentConfirmModal");
 const confirmStudentActionBtn = document.getElementById("confirmStudentActionBtn");
@@ -39,14 +52,44 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     bindStudentEvents();
 
-    await loadStudents();
+    if (await loadReferenceData()) {
+        await loadStudents();
+    }
 });
 
 function bindStudentEvents() {
-    studentSearch?.addEventListener("input", renderStudents);
-    studentStatusFilter?.addEventListener("change", renderStudents);
+    studentSearch?.addEventListener("input", () => {
+        window.clearTimeout(searchDebounce);
+        searchDebounce = window.setTimeout(() => {
+            currentPage = 1;
+            loadStudents();
+        }, 250);
+    });
+    [
+        studentStatusFilter,
+        studentProgramFilter,
+        studentSchoolFilter
+    ].forEach(control => control?.addEventListener("change", () => {
+        currentPage = 1;
+        loadStudents();
+    }));
     studentsTableBody?.addEventListener("click", handleStudentTableAction);
     refreshStudentsBtn?.addEventListener("click", () => loadStudents());
+    exportStudentsBtn?.addEventListener("click", exportStudentDirectory);
+    document.getElementById("previousStudentsPageBtn")
+        ?.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage -= 1;
+                loadStudents();
+            }
+        });
+    document.getElementById("nextStudentsPageBtn")
+        ?.addEventListener("click", () => {
+            if (currentPage < totalPages) {
+                currentPage += 1;
+                loadStudents();
+            }
+        });
 
     document.getElementById("retryStudentsBtn")
         ?.addEventListener("click", () => loadStudents());
@@ -78,53 +121,110 @@ function bindStudentEvents() {
     });
 }
 
+async function loadReferenceData() {
+    try {
+        const [coursesResponse, programsResponse, schoolsResponse] =
+            await Promise.all([
+                adminFetch(COURSES_API_URL),
+                adminFetch(PROGRAMS_API_URL),
+                adminFetch(SCHOOLS_API_URL)
+            ]);
+
+        if (
+            coursesResponse?.success !== true ||
+            !Array.isArray(coursesResponse.data) ||
+            programsResponse?.success !== true ||
+            !Array.isArray(programsResponse.data) ||
+            schoolsResponse?.success !== true ||
+            !Array.isArray(schoolsResponse.data)
+        ) {
+            throw new Error(
+                "An academic reference endpoint returned an unexpected response."
+            );
+        }
+
+        courseNames = createCourseNameMap(coursesResponse.data);
+        programs = programsResponse.data;
+        schools = schoolsResponse.data;
+        populateStudentFilter(
+            studentProgramFilter,
+            programs,
+            "All programs"
+        );
+        populateStudentFilter(
+            studentSchoolFilter,
+            schools,
+            "All schools"
+        );
+        return true;
+    } catch (error) {
+        console.error("Student directory reference data error:", error);
+        showStudentsError(
+            "Unable to load programs, schools, and courses for student filters."
+        );
+        return false;
+    }
+}
+
 async function loadStudents() {
+    const requestVersion = ++studentRequestVersion;
     setStudentsLoadingState();
 
     try {
-        const requests = [
-            adminFetch(STUDENTS_API_URL, { method: "GET" })
-        ];
-
-        if (!coursesLoaded) {
-            requests.push(adminFetch(COURSES_API_URL, { method: "GET" }));
+        const query = new URLSearchParams({
+            page: String(currentPage),
+            limit: String(STUDENT_PAGE_SIZE),
+            search: (studentSearch?.value || "").trim(),
+            status: studentStatusFilter?.value || "all"
+        });
+        if (studentProgramFilter?.value !== "all") {
+            query.set("programId", studentProgramFilter.value);
+        }
+        if (studentSchoolFilter?.value !== "all") {
+            query.set("schoolId", studentSchoolFilter.value);
         }
 
-        const results = await Promise.allSettled(requests);
-        const studentResult = results[0];
-        const courseResult = results[1];
+        const studentResponse = await adminFetch(
+            `${STUDENTS_API_URL}?${query.toString()}`,
+            { method: "GET" }
+        );
 
-        if (courseResult?.status === "fulfilled") {
-            const response = courseResult.value;
-            if (!response?.success || !Array.isArray(response.data)) {
-                throw new Error("The courses endpoint returned an unexpected response.");
-            }
-            courseNames = createCourseNameMap(response.data);
-            coursesLoaded = true;
+        if (requestVersion !== studentRequestVersion) {
+            return;
         }
 
-        if (studentResult.status === "rejected") {
-            throw studentResult.reason;
+        if (
+            studentResponse?.success !== true ||
+            !Array.isArray(studentResponse.data) ||
+            !studentResponse.pagination ||
+            !studentResponse.summary
+        ) {
+            throw new Error(
+                "The students endpoint returned an unexpected response."
+            );
         }
 
-        const studentResponse = studentResult.value;
-        if (!studentResponse?.success || !Array.isArray(studentResponse.data)) {
-            throw new Error("The students endpoint returned an unexpected response.");
-        }
-
-        if (!coursesLoaded && courseResult?.status === "rejected") {
-            throw courseResult.reason;
-        }
-
-        const nextStudents = studentResponse.data.map(normalizeStudent);
-
-        students = nextStudents;
+        students = studentResponse.data.map(normalizeStudent);
+        studentSummary = studentResponse.summary;
+        matchingStudentCount = Number(studentResponse.count) || 0;
+        currentPage = Number(studentResponse.pagination.page) || 1;
+        totalPages = Math.max(
+            1,
+            Number(studentResponse.pagination.totalPages) || 1
+        );
 
         updateStudentSummary();
         renderStudents();
         hideStudentsLoadingState();
         setStudentControlsDisabled(false);
+        updateStudentPagination();
+        if (exportStudentsBtn) {
+            exportStudentsBtn.disabled = matchingStudentCount === 0;
+        }
     } catch (error) {
+        if (requestVersion !== studentRequestVersion) {
+            return;
+        }
         console.error("ExamHub students loading error:", error);
         showStudentsError("Unable to load student records. Please try again.");
         setStudentControlsDisabled(false);
@@ -157,8 +257,37 @@ function normalizeStudent(record) {
             student[field] = record[field];
         }
     });
+    student.associations = Array.isArray(record?.associations)
+        ? record.associations
+        : [];
 
     return student;
+}
+
+function populateStudentFilter(select, records, firstLabel) {
+    if (!select) {
+        return;
+    }
+
+    const selected = select.value || "all";
+    select.replaceChildren(new Option(firstLabel, "all"));
+    records
+        .filter(record =>
+            record?.id &&
+            typeof record.name === "string" &&
+            record.name.trim()
+        )
+        .sort((left, right) =>
+            left.name.localeCompare(right.name)
+        )
+        .forEach(record =>
+            select.add(new Option(record.name, String(record.id)))
+        );
+    select.value = Array.from(select.options).some(
+        option => option.value === selected
+    )
+        ? selected
+        : "all";
 }
 
 function normalizeIdentifier(value) {
@@ -189,45 +318,17 @@ function getStudentActiveState(student) {
 }
 
 function updateStudentSummary() {
-    const activeCount = students.filter(
-        student => getStudentActiveState(student) === true
-    ).length;
-    const inactiveCount = students.filter(
-        student => getStudentActiveState(student) === false
-    ).length;
-    const representedCourseIds = new Set(
-        students
-            .map(student => normalizeIdentifier(student.courseId))
-            .filter(Boolean)
+    setText("totalStudents", studentSummary?.total ?? students.length);
+    setText("activeStudents", studentSummary?.active ?? 0);
+    setText("inactiveStudents", studentSummary?.inactive ?? 0);
+    setText(
+        "representedCourses",
+        studentSummary?.representedCourses ?? 0
     );
-
-    setText("totalStudents", students.length);
-    setText("activeStudents", activeCount);
-    setText("inactiveStudents", inactiveCount);
-    setText("representedCourses", representedCourseIds.size);
 }
 
 function getFilteredStudents() {
-    const searchTerm = (studentSearch?.value || "").trim().toLowerCase();
-    const statusFilter = studentStatusFilter?.value || "all";
-
-    return students.filter(student => {
-        const searchableFields = [
-            student.fullName,
-            student.registrationNumber,
-            student.phoneNumber,
-            student.id
-        ];
-        const matchesSearch = !searchTerm || searchableFields.some(value =>
-            typeof value === "string" && value.toLowerCase().includes(searchTerm)
-        );
-        const activeState = getStudentActiveState(student);
-        const matchesStatus = statusFilter === "all" ||
-            (statusFilter === "active" && activeState === true) ||
-            (statusFilter === "inactive" && activeState === false);
-
-        return matchesSearch && matchesStatus;
-    });
+    return students;
 }
 
 function renderStudents() {
@@ -239,25 +340,33 @@ function renderStudents() {
     studentsTableBody.replaceChildren();
     setText(
         "studentCount",
-        `${filteredStudents.length} ${filteredStudents.length === 1 ? "student" : "students"}`
+        `${matchingStudentCount} ${
+            matchingStudentCount === 1
+                ? "student"
+                : "students"
+        }`
     );
 
-    if (students.length === 0 || filteredStudents.length === 0) {
+    if (matchingStudentCount === 0 || filteredStudents.length === 0) {
         studentsTableWrapper.classList.add("hidden");
         studentsEmpty?.classList.remove("hidden");
 
         const hasFilters = Boolean(
             (studentSearch?.value || "").trim() ||
-            (studentStatusFilter?.value || "all") !== "all"
+            (studentStatusFilter?.value || "all") !== "all" ||
+            studentProgramFilter?.value !== "all" ||
+            studentSchoolFilter?.value !== "all"
         );
 
         setText(
             "studentsEmptyTitle",
-            students.length === 0 ? "No students yet" : "No matching students"
+            (studentSummary?.total ?? 0) === 0
+                ? "No students yet"
+                : "No matching students"
         );
         setText(
             "studentsEmptyMessage",
-            students.length === 0
+            (studentSummary?.total ?? 0) === 0
                 ? "There are currently no students registered in the system."
                 : "No student records match your current search or status filter."
         );
@@ -511,6 +620,7 @@ async function executeStudentStatusChange() {
 
         updateStudentSummary();
         renderStudents();
+        await loadStudents();
         studentConfirmModal?.classList.add("hidden");
         studentConfirmModal?.setAttribute("aria-hidden", "true");
         pendingStatusChange = null;
@@ -543,7 +653,14 @@ function clearStudentFilters() {
     if (studentStatusFilter) {
         studentStatusFilter.value = "all";
     }
-    renderStudents();
+    if (studentProgramFilter) {
+        studentProgramFilter.value = "all";
+    }
+    if (studentSchoolFilter) {
+        studentSchoolFilter.value = "all";
+    }
+    currentPage = 1;
+    loadStudents();
     studentSearch?.focus();
 }
 
@@ -557,6 +674,8 @@ function setStudentsLoadingState() {
     setText("inactiveStudents", "—");
     setText("representedCourses", "—");
     setText("studentCount", "Loading...");
+    document.getElementById("studentsPagination")
+        ?.classList.add("hidden");
     setStudentControlsDisabled(true);
 }
 
@@ -586,6 +705,129 @@ function setStudentControlsDisabled(disabled) {
     }
     if (refreshStudentsBtn) {
         refreshStudentsBtn.disabled = disabled;
+    }
+    [
+        studentProgramFilter,
+        studentSchoolFilter
+    ].forEach(control => {
+        if (control) {
+            control.disabled = disabled;
+        }
+    });
+    if (exportStudentsBtn) {
+        exportStudentsBtn.disabled =
+            disabled || matchingStudentCount === 0;
+    }
+}
+
+function updateStudentPagination() {
+    const pagination = document.getElementById("studentsPagination");
+    const previous = document.getElementById("previousStudentsPageBtn");
+    const next = document.getElementById("nextStudentsPageBtn");
+
+    pagination?.classList.toggle(
+        "hidden",
+        matchingStudentCount === 0
+    );
+    setText(
+        "studentsPageLabel",
+        `Page ${currentPage} of ${totalPages}`
+    );
+    if (previous) {
+        previous.disabled = currentPage <= 1;
+    }
+    if (next) {
+        next.disabled = currentPage >= totalPages;
+    }
+}
+
+function buildStudentDirectoryQuery() {
+    const query = new URLSearchParams();
+    const search = (studentSearch?.value || "").trim();
+    const status = studentStatusFilter?.value || "all";
+
+    if (search) {
+        query.set("search", search);
+    }
+    if (status !== "all") {
+        query.set("status", status);
+    }
+    if (studentProgramFilter?.value !== "all") {
+        query.set("programId", studentProgramFilter.value);
+    }
+    if (studentSchoolFilter?.value !== "all") {
+        query.set("schoolId", studentSchoolFilter.value);
+    }
+
+    return query;
+}
+
+async function exportStudentDirectory() {
+    const feedback = document.getElementById(
+        "studentsExportFeedback"
+    );
+    const query = buildStudentDirectoryQuery();
+    exportStudentsBtn.disabled = true;
+    feedback?.classList.add("hidden");
+
+    try {
+        const token = getAdminToken();
+        if (!token) {
+            throw new Error("Authentication required.");
+        }
+
+        const suffix = query.size ? `?${query.toString()}` : "";
+        const response = await fetch(
+            `${ADMIN_API_BASE_URL}${STUDENTS_API_URL}/export${suffix}`,
+            {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (response.status === 401) {
+            clearAdminSession();
+            window.location.href = "./login.html";
+            return;
+        }
+
+        if (!response.ok) {
+            let message = "Student directory export failed.";
+            try {
+                const body = await response.json();
+                message = body?.message || message;
+            } catch {
+                // Retain the explicit fallback for non-JSON server errors.
+            }
+            throw new Error(message);
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = "examhub-students.csv";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(objectUrl);
+        if (feedback) {
+            feedback.textContent =
+                "Student directory CSV exported for the selected filters.";
+            feedback.classList.remove("hidden", "is-error");
+        }
+    } catch (error) {
+        console.error("Student directory export error:", error);
+        if (feedback) {
+            feedback.textContent =
+                error.message || "Student directory export failed.";
+            feedback.classList.remove("hidden");
+            feedback.classList.add("is-error");
+        }
+    } finally {
+        exportStudentsBtn.disabled = matchingStudentCount === 0;
     }
 }
 

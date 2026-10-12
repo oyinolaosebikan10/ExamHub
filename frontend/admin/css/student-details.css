@@ -308,6 +308,64 @@
     font-size: 10px;
 }
 
+.student-results-card {
+    margin-top: 18px;
+}
+
+.student-results-empty,
+.student-results-feedback {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.student-results-list {
+    display: grid;
+    gap: 10px;
+}
+
+.student-result-row {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.student-result-row:last-child {
+    border-bottom: 0;
+}
+
+.student-result-details {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+}
+
+.student-result-details strong {
+    color: var(--text);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.student-result-details span,
+.student-result-details time {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.student-result-download {
+    flex: 0 0 auto;
+}
+
+.student-results-feedback {
+    margin: 10px 0 0;
+    color: var(--danger);
+}
+
 @media (max-width: 1050px) {
     .student-details-page {
         padding-right: 24px;
@@ -358,6 +416,12 @@
 
     .student-detail-card {
         padding: 18px;
+    }
+
+    .student-result-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
     }
 
     .student-info-row {

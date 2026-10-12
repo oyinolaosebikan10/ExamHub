@@ -62,12 +62,8 @@ const getAdminNotifications = async (requestedLimit = 50) => {
         100,
         Math.max(1, Number.parseInt(requestedLimit, 10) || 50)
     );
-    const snapshot = await adminNotificationsCollection
-        .orderBy("createdAt", "desc")
-        .limit(limit)
-        .get();
-
-    return snapshot.docs.map((doc) => {
+    const snapshot = await adminNotificationsCollection.get();
+    const notifications = snapshot.docs.map((doc) => {
         const notification = doc.data();
 
         return {
@@ -81,15 +77,35 @@ const getAdminNotifications = async (requestedLimit = 50) => {
             targetUrl: notification.targetUrl || null
         };
     });
+
+    notifications.sort((left, right) => {
+        const leftDate = left.createdAt?.toDate
+            ? left.createdAt.toDate().getTime()
+            : new Date(left.createdAt || 0).getTime();
+        const rightDate = right.createdAt?.toDate
+            ? right.createdAt.toDate().getTime()
+            : new Date(right.createdAt || 0).getTime();
+
+        return (Number.isFinite(rightDate) ? rightDate : 0) -
+            (Number.isFinite(leftDate) ? leftDate : 0);
+    });
+
+    return notifications.slice(0, limit);
 };
 
 const getUnreadAdminNotificationCount = async () => {
-    const countSnapshot = await adminNotificationsCollection
-        .where("read", "==", false)
-        .count()
-        .get();
+    const [totalSnapshot, readSnapshot] = await Promise.all([
+        adminNotificationsCollection.count().get(),
+        adminNotificationsCollection
+            .where("read", "==", true)
+            .count()
+            .get()
+    ]);
 
-    return countSnapshot.data().count;
+    return Math.max(
+        0,
+        totalSnapshot.data().count - readSnapshot.data().count
+    );
 };
 
 const markAdminNotificationRead = async (notificationId) => {
@@ -104,7 +120,7 @@ const markAdminNotificationRead = async (notificationId) => {
             throw new Error("Notification not found");
         }
 
-        if (!notificationDoc.data().read) {
+        if (notificationDoc.data().read !== true) {
             transaction.update(notificationRef, {
                 read: true,
                 readAt: new Date()
@@ -119,10 +135,10 @@ const markAdminNotificationRead = async (notificationId) => {
 };
 
 const markAllAdminNotificationsRead = async () => {
-    const snapshot = await adminNotificationsCollection
-        .where("read", "==", false)
-        .get();
-    const docs = snapshot.docs;
+    const snapshot = await adminNotificationsCollection.get();
+    const docs = snapshot.docs.filter(
+        (doc) => doc.data().read !== true
+    );
     const readAt = new Date();
 
     for (let index = 0; index < docs.length; index += 450) {

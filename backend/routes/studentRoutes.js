@@ -2,6 +2,7 @@ const express = require("express");
 
 const {
     getAllStudents,
+    exportStudentsController,
     getSingleStudent,
     updateStudentStatusController,
     getMyProfileController
@@ -37,6 +38,13 @@ router.get(
     authMiddleware,
     roleMiddleware("admin"),
     getAllStudents
+);
+
+router.get(
+    "/export",
+    authMiddleware,
+    roleMiddleware("admin"),
+    exportStudentsController
 );
 
 // Update student active/inactive status

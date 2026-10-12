@@ -37,6 +37,14 @@
                         <p id="studentHeroSubtitle">Student record information</p>
                     </div>
                 </div>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    id="exportStudentRecordButton"
+                    disabled
+                >
+                    Export student CSV
+                </button>
             </header>
 
             <section
@@ -134,6 +142,18 @@
                                 <dt>Course</dt>
                                 <dd id="studentCourseName">Not available</dd>
                             </div>
+                            <div class="student-info-row">
+                                <dt>Programs</dt>
+                                <dd id="studentPrograms">Not available</dd>
+                            </div>
+                            <div class="student-info-row">
+                                <dt>Schools</dt>
+                                <dd id="studentSchools">Not available</dd>
+                            </div>
+                            <div class="student-info-row">
+                                <dt>Organization-hosted programs</dt>
+                                <dd id="studentOrganizationPrograms">Not available</dd>
+                            </div>
                         </dl>
                     </section>
 
@@ -158,6 +178,31 @@
                         </dl>
                     </section>
                 </div>
+
+                <section class="student-detail-card card student-results-card">
+                    <div class="student-detail-card-header">
+                        <span>Academic records</span>
+                        <h2>Examination results</h2>
+                    </div>
+                    <div
+                        class="student-results-empty"
+                        id="studentResultsEmpty"
+                        hidden
+                    >
+                        No result records are available for this student.
+                    </div>
+                    <div
+                        class="student-results-list"
+                        id="studentResultsList"
+                        aria-live="polite"
+                    ></div>
+                    <p
+                        class="student-results-feedback"
+                        id="studentResultsFeedback"
+                        role="alert"
+                        hidden
+                    ></p>
+                </section>
             </div>
         </div>
     </main>

@@ -5,14 +5,26 @@
         results: [],
         exams: new Map(),
         courses: new Map(),
-        programs: new Map()
+        programs: new Map(),
+        schools: new Map()
     };
+    const schoolIdFor = (result) => {
+        const programId = examFor(result)?.programId || result.programId;
+        const program = state.programs.get(String(programId));
+        return String(program?.schoolId || "");
+    };
+    const schoolName = (result) =>
+        safeText(state.schools.get(schoolIdFor(result))?.name);
+    const studentLabel = (record) =>
+        `${safeText(record.fullName)} · ${safeText(record.registrationNumber)}`;
 
     const elements = {
         search: document.getElementById("reportSearch"),
         exam: document.getElementById("reportExamFilter"),
         course: document.getElementById("reportCourseFilter"),
         program: document.getElementById("reportProgramFilter"),
+        school: document.getElementById("reportSchoolFilter"),
+        student: document.getElementById("reportStudentFilter"),
         dateFrom: document.getElementById("reportDateFrom"),
         dateTo: document.getElementById("reportDateTo"),
         body: document.getElementById("reportsTableBody"),
@@ -92,7 +104,15 @@
             .filter((record) => record?.id && labelFor(record))
             .sort((a, b) => labelFor(a).localeCompare(labelFor(b)))
             .forEach((record) => select.add(new Option(labelFor(record), String(record.id))));
-        select.options[0].textContent = `All ${select.id === "reportExamFilter" ? "exams" : select.id === "reportCourseFilter" ? "courses" : "programs"}`;
+        const allLabels = {
+            reportExamFilter: "All exams",
+            reportCourseFilter: "All courses",
+            reportProgramFilter: "All programs",
+            reportSchoolFilter: "All schools",
+            reportStudentFilter: "All students"
+        };
+        select.options[0].textContent =
+            allLabels[select.id] || "All";
         select.value = Array.from(select.options).some((option) => option.value === selected) ? selected : "all";
     };
 
@@ -105,6 +125,8 @@
             if (elements.exam.value !== "all" && String(result.examId) !== elements.exam.value) return false;
             if (elements.course.value !== "all" && String(result.courseId) !== elements.course.value) return false;
             if (elements.program.value !== "all" && String(programId) !== elements.program.value) return false;
+            if (elements.school.value !== "all" && schoolIdFor(result) !== elements.school.value) return false;
+            if (elements.student.value !== "all" && String(result.studentId) !== elements.student.value) return false;
             if (elements.dateFrom.value && (submittedAt === null || submittedAt < new Date(`${elements.dateFrom.value}T00:00:00`).getTime())) return false;
             if (elements.dateTo.value && (submittedAt === null || submittedAt > new Date(`${elements.dateTo.value}T23:59:59.999`).getTime())) return false;
             if (!search) return true;
@@ -112,7 +134,8 @@
                 result.fullName,
                 result.registrationNumber,
                 examName(result),
-                courseName(result)
+                courseName(result),
+                schoolName(result)
             ].some((value) => String(value || "").toLocaleLowerCase().includes(search));
         }).sort((a, b) => {
             return (dateMillis(b.submittedAt) || 0) - (dateMillis(a.submittedAt) || 0);
@@ -155,13 +178,12 @@
         elements.examCount.textContent = String(new Set(results.map((result) => result.examId).filter(Boolean)).size);
         elements.csv.disabled = results.length === 0;
         const pdfSupported = !elements.search.value.trim() &&
-            elements.program.value === "all" &&
             !elements.dateFrom.value &&
             !elements.dateTo.value;
         elements.pdf.disabled = results.length === 0 || !pdfSupported;
         elements.exportNote.textContent = pdfSupported
-            ? "PDF export supports the selected exam and course filters. CSV exports the exact visible rows."
-            : "The report PDF endpoint does not support text search or program filters. CSV exports the exact visible rows.";
+            ? "PDF and CSV include all matching results. PDF supports exam, course, program, school, and student filters."
+            : "PDF does not support text search or submission-date filters. CSV includes all matching results.";
 
         results.forEach((result) => {
             const row = document.createElement("tr");
@@ -171,6 +193,7 @@
                 examName(result),
                 courseName(result),
                 programName(result),
+                schoolName(result),
                 `Attempt ${Math.max(1, Number(result.attemptNumber) || 1)}`,
                 `${Number.isFinite(Number(result.score)) ? Number(result.score) : "—"} / ${Number.isFinite(Number(result.totalMarks)) ? Number(result.totalMarks) : "—"}`,
                 percentage(result.percentage),
@@ -185,7 +208,7 @@
     };
 
     const loadReferenceData = async () => {
-        const endpoints = ["/exams", "/courses", "/programs"];
+        const endpoints = ["/exams", "/courses", "/programs", "/schools"];
         const responses = await Promise.allSettled(endpoints.map((endpoint) => adminFetch(endpoint)));
         responses.forEach((entry, index) => {
             if (entry.status === "rejected") {
@@ -193,7 +216,12 @@
                 return;
             }
             const records = asArray(entry.value, endpoints[index]);
-            const target = index === 0 ? state.exams : index === 1 ? state.courses : state.programs;
+            const target = [
+                state.exams,
+                state.courses,
+                state.programs,
+                state.schools
+            ][index];
             records.forEach((record) => {
                 if (record?.id) target.set(String(record.id), record);
             });
@@ -212,6 +240,26 @@
             populateFilter(elements.exam, Array.from(state.exams.values()), (record) => record.title);
             populateFilter(elements.course, Array.from(state.courses.values()), (record) => record.name);
             populateFilter(elements.program, Array.from(state.programs.values()), (record) => record.name);
+            populateFilter(elements.school, Array.from(state.schools.values()), (record) => record.name);
+            const students = [
+                ...new Map(
+                    state.results
+                        .filter(result => result.studentId)
+                        .map(result => [
+                            String(result.studentId),
+                            {
+                                id: String(result.studentId),
+                                fullName: result.fullName,
+                                registrationNumber: result.registrationNumber
+                            }
+                        ])
+                ).values()
+            ];
+            populateFilter(
+                elements.student,
+                students,
+                studentLabel
+            );
             render();
         } catch (error) {
             console.error("Reports loading error:", error);
@@ -224,23 +272,46 @@
         }
     };
 
-    const csvCell = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const csvCell = (value) => {
+        let text = String(value ?? "");
+        if (/^[\s]*[=+\-@]/.test(text)) {
+            text = `'${text}`;
+        }
+        return `"${text.replace(/"/g, '""')}"`;
+    };
 
     const exportCsv = () => {
-        const headers = ["Student", "Registration number", "Exam", "Course", "Program", "Attempt", "Score", "Total marks", "Percentage", "Submitted"];
+        const filters = [
+            elements.exam.value !== "all" ? `Exam: ${elements.exam.selectedOptions[0].textContent}` : null,
+            elements.course.value !== "all" ? `Course: ${elements.course.selectedOptions[0].textContent}` : null,
+            elements.program.value !== "all" ? `Program: ${elements.program.selectedOptions[0].textContent}` : null,
+            elements.school.value !== "all" ? `School: ${elements.school.selectedOptions[0].textContent}` : null,
+            elements.student.value !== "all" ? `Student: ${elements.student.selectedOptions[0].textContent}` : null,
+            elements.dateFrom.value ? `Submitted from: ${elements.dateFrom.value}` : null,
+            elements.dateTo.value ? `Submitted through: ${elements.dateTo.value}` : null,
+            elements.search.value.trim() ? `Search: ${elements.search.value.trim()}` : null
+        ].filter(Boolean);
+        const headers = ["Student", "Registration number", "Exam", "Course", "Program", "School", "Attempt", "Score", "Total marks", "Percentage", "Submitted"];
         const rows = getFilteredResults().map((result) => [
             result.fullName,
             result.registrationNumber,
             examName(result),
             courseName(result),
             programName(result),
+            schoolName(result),
             Math.max(1, Number(result.attemptNumber) || 1),
             result.score,
             result.totalMarks,
             result.percentage,
             formatDate(result.submittedAt)
         ]);
-        const csv = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+        const csvRows = [
+            ["Report scope", filters.join(" | ") || "All result records"],
+            [],
+            headers,
+            ...rows
+        ];
+        const csv = csvRows.map((row) => row.map(csvCell).join(",")).join("\r\n");
         const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
         const link = document.createElement("a");
         link.href = url;
@@ -253,6 +324,9 @@
         const query = new URLSearchParams();
         if (elements.exam.value !== "all") query.set("examId", elements.exam.value);
         if (elements.course.value !== "all") query.set("courseId", elements.course.value);
+        if (elements.program.value !== "all") query.set("programId", elements.program.value);
+        if (elements.school.value !== "all") query.set("schoolId", elements.school.value);
+        if (elements.student.value !== "all") query.set("studentId", elements.student.value);
         const endpoint = `/results/reports/table${query.size ? `?${query}` : ""}`;
         elements.pdf.disabled = true;
         setFeedback("");
@@ -288,7 +362,6 @@
         } finally {
             elements.pdf.disabled = !getFilteredResults().length ||
                     Boolean(elements.search.value.trim()) ||
-                    elements.program.value !== "all" ||
                     Boolean(elements.dateFrom.value) ||
                     Boolean(elements.dateTo.value);
         }
@@ -296,7 +369,7 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         setPageTitle("Reports");
-        [elements.search, elements.exam, elements.course, elements.program, elements.dateFrom, elements.dateTo].forEach((element) => {
+        [elements.search, elements.exam, elements.course, elements.program, elements.school, elements.student, elements.dateFrom, elements.dateTo].forEach((element) => {
             element.addEventListener("input", render);
             element.addEventListener("change", render);
         });

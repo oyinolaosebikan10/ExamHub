@@ -81,6 +81,14 @@
                             <select id="reportProgramFilter"><option value="all">All programs</option></select>
                         </label>
                         <label class="reports-field">
+                            <span>School</span>
+                            <select id="reportSchoolFilter"><option value="all">All schools</option></select>
+                        </label>
+                        <label class="reports-field">
+                            <span>Student</span>
+                            <select id="reportStudentFilter"><option value="all">All students</option></select>
+                        </label>
+                        <label class="reports-field">
                             <span>Submitted from</span>
                             <input type="date" id="reportDateFrom">
                         </label>
@@ -89,7 +97,7 @@
                             <input type="date" id="reportDateTo">
                         </label>
                     </div>
-                    <p class="reports-export-note" id="reportExportNote">PDF export supports exam and course filters. Use CSV to export the exact search and program-filtered rows.</p>
+                    <p class="reports-export-note" id="reportExportNote">CSV exports all matching result records. PDF supports exam, course, program, school, and student filters; text search and date filters are CSV-only.</p>
 
                     <div class="reports-state" id="reportsLoading" role="status">Loading report data...</div>
                     <div class="reports-state reports-error" id="reportsError" role="alert" hidden>
@@ -110,6 +118,7 @@
                                     <th scope="col">Exam</th>
                                     <th scope="col">Course</th>
                                     <th scope="col">Program</th>
+                                    <th scope="col">School</th>
                                     <th scope="col">Attempt</th>
                                     <th scope="col">Score</th>
                                     <th scope="col">Percentage</th>
