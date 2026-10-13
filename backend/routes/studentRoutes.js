@@ -5,6 +5,7 @@ const {
     exportStudentsController,
     getSingleStudent,
     updateStudentStatusController,
+    deleteStudentController,
     getMyProfileController
 } = require("../controllers/studentController");
 
@@ -53,6 +54,13 @@ router.patch(
     authMiddleware,
     roleMiddleware("admin"),
     updateStudentStatusController
+);
+
+router.delete(
+    "/:studentId",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteStudentController
 );
 
 // Get single student

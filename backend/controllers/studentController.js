@@ -6,6 +6,7 @@ const {
     studentsCollection,
     generateRegistrationNumber,
     updateStudentStatus,
+    deleteStudent,
     getStudentProfile,
     getAdminStudentDirectory,
     getAdminStudentDetails
@@ -347,6 +348,46 @@ const updateStudentStatusController =
             });
         }
     };
+
+const deleteStudentController = async (req, res) => {
+    try {
+        const result = await deleteStudent(req.params.studentId);
+        return res.status(200).json({
+            success: true,
+            message: "Student account deleted successfully",
+            data: result
+        });
+    } catch (error) {
+        console.error("Delete student error:", {
+            studentId: req.params.studentId,
+            message: error?.message || "Unknown error",
+            code: error?.code || null
+        });
+
+        if (error.message === "Student not found") {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (
+            error.message.startsWith("Deactivate the student") ||
+            error.message.startsWith("Student has ") ||
+            error.message.startsWith("The linked account")
+        ) {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to delete student account"
+        });
+    }
+};
 
 
 // =========================================================
@@ -696,6 +737,7 @@ module.exports = {
     registerStudent,
 
     updateStudentStatusController,
+    deleteStudentController,
 
     getAllStudents,
 

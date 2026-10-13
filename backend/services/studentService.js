@@ -7,6 +7,10 @@ const schoolsCollection = db.collection("schools");
 const resultsCollection = db.collection("results");
 const examsCollection = db.collection("exams");
 const coursesCollection = db.collection("courses");
+const examSessionsCollection = db.collection("examSessions");
+const retakeAuthorizationsCollection =
+    db.collection("examRetakeAuthorizations");
+const usersCollection = db.collection("users");
 
 const getDateMillis = (value) => {
     if (value && typeof value.toDate === "function") {
@@ -371,6 +375,93 @@ const updateStudentStatus = async (
     return getSafeStudentRecord(updatedDoc);
 };
 
+const deleteStudent = async (studentId) => {
+    if (!studentId) {
+        throw new Error("Student not found");
+    }
+
+    const studentRef = studentsCollection.doc(studentId);
+
+    return db.runTransaction(async (transaction) => {
+        const studentDoc = await transaction.get(studentRef);
+        if (!studentDoc.exists) {
+            throw new Error("Student not found");
+        }
+
+        const student = studentDoc.data();
+        const isActive =
+            typeof student.isActive === "boolean"
+                ? student.isActive
+                : student.status !== "inactive";
+        if (isActive) {
+            throw new Error("Deactivate the student before deleting the account");
+        }
+
+        const dependencies = await Promise.all([
+            transaction.get(
+                enrollmentsCollection
+                    .where("studentId", "==", studentId)
+                    .limit(1)
+            ),
+            transaction.get(
+                resultsCollection
+                    .where("studentId", "==", studentId)
+                    .limit(1)
+            ),
+            transaction.get(
+                examSessionsCollection
+                    .where("studentId", "==", studentId)
+                    .limit(1)
+            ),
+            transaction.get(
+                retakeAuthorizationsCollection
+                    .where("studentId", "==", studentId)
+                    .limit(1)
+            )
+        ]);
+
+        if (!dependencies[0].empty) {
+            throw new Error(
+                "Student has enrollment records. The account cannot be deleted because enrollment history must be preserved."
+            );
+        }
+        if (!dependencies[1].empty) {
+            throw new Error(
+                "Student has exam results. The account cannot be deleted because results must be preserved."
+            );
+        }
+        if (!dependencies[2].empty) {
+            throw new Error(
+                "Student has exam sessions. The account cannot be deleted because attempt history must be preserved."
+            );
+        }
+        if (!dependencies[3].empty) {
+            throw new Error(
+                "Student has exam authorizations. The account cannot be deleted because exam history must be preserved."
+            );
+        }
+
+        let userRef = null;
+        let userDoc = null;
+        if (typeof student.userId === "string" && student.userId.trim()) {
+            userRef = usersCollection.doc(student.userId);
+            userDoc = await transaction.get(userRef);
+            if (userDoc.exists && userDoc.data().role !== "student") {
+                throw new Error(
+                    "The linked account is not a student account. No records were deleted."
+                );
+            }
+        }
+
+        transaction.delete(studentRef);
+        if (userRef && userDoc?.exists) {
+            transaction.delete(userRef);
+        }
+
+        return { id: studentId, deleted: true };
+    });
+};
+
 
 // =========================================================
 // GET STUDENT PROFILE
@@ -453,6 +544,7 @@ module.exports = {
     generateRegistrationNumber,
 
     updateStudentStatus,
+    deleteStudent,
 
     getStudentProfile,
     getAdminStudentDirectory,

@@ -410,6 +410,8 @@ function createStudentRow(student) {
                     data-action="view" data-student-id="${safeId}">View</button>
                 <button type="button" class="${statusButtonClass}"
                     data-action="${statusAction}" data-student-id="${safeId}">${statusLabel}</button>
+                <button type="button" class="student-action-button delete-action"
+                    data-action="delete" data-student-id="${safeId}">Delete</button>
            </div>`
         : `<span class="student-action-unavailable">Unavailable</span>`;
 
@@ -533,33 +535,49 @@ function handleStudentTableAction(event) {
     ) {
         openStudentConfirmation(
             student,
-            button.dataset.action === "activate",
+            button.dataset.action,
             button
         );
+        return;
+    }
+    if (button.dataset.action === "delete") {
+        openStudentConfirmation(student, "delete", button);
     }
 }
 
-function openStudentConfirmation(student, activate, trigger) {
+function openStudentConfirmation(student, action, trigger) {
+    const isDelete = action === "delete";
+    const activate = action === "activate";
     pendingStatusChange = {
         studentId: student.id,
+        action,
         activate
     };
     lastStatusTrigger = trigger;
     setText(
         "studentConfirmTitle",
-        activate ? "Activate student account?" : "Deactivate student account?"
+        isDelete
+            ? "Delete student account?"
+            : activate
+                ? "Activate student account?"
+                : "Deactivate student account?"
     );
     setText(
         "studentConfirmMessage",
-        `${activate ? "Activate" : "Deactivate"} the account for ${
-            safeDisplayValue(student.fullName) || "this student"
-        }?`
+        isDelete
+            ? `Permanently delete ${safeDisplayValue(student.fullName) || "this student"} and its linked student login? Deletion is allowed only after deactivation and only when there are no enrollments, exam sessions, results, or exam authorizations. Historical records will not be deleted.`
+            : `${activate ? "Activate" : "Deactivate"} the account for ${
+                safeDisplayValue(student.fullName) || "this student"
+            }?`
     );
     document.getElementById("studentConfirmError")?.classList.add("hidden");
-    setText("confirmStudentActionText", activate ? "Activate account" : "Deactivate account");
+    setText(
+        "confirmStudentActionText",
+        isDelete ? "Delete account" : activate ? "Activate account" : "Deactivate account"
+    );
 
     if (confirmStudentActionBtn) {
-        confirmStudentActionBtn.classList.toggle("danger-button", !activate);
+        confirmStudentActionBtn.classList.toggle("danger-button", isDelete || !activate);
     }
 
     studentConfirmModal?.classList.remove("hidden");
@@ -590,7 +608,7 @@ async function executeStudentStatusChange() {
         return;
     }
 
-    const { studentId, activate } = pendingStatusChange;
+    const { studentId, activate, action } = pendingStatusChange;
     statusChangeInProgress = true;
     confirmStudentActionBtn.disabled = true;
     cancelStudentConfirmBtn.disabled = true;
@@ -598,24 +616,35 @@ async function executeStudentStatusChange() {
     document.getElementById("studentConfirmError")?.classList.add("hidden");
 
     try {
-        const response = await adminFetch(
-            `${STUDENTS_API_URL}/${encodeURIComponent(studentId)}/status`,
-            {
-                method: "PATCH",
-                body: { isActive: activate }
+        if (action === "delete") {
+            const response = await adminFetch(
+                `${STUDENTS_API_URL}/${encodeURIComponent(studentId)}`,
+                { method: "DELETE" }
+            );
+            if (response?.success !== true || response?.data?.deleted !== true) {
+                throw new Error("The student deletion endpoint returned an unexpected response.");
             }
-        );
+            students = students.filter(student => student.id !== studentId);
+        } else {
+            const response = await adminFetch(
+                `${STUDENTS_API_URL}/${encodeURIComponent(studentId)}/status`,
+                {
+                    method: "PATCH",
+                    body: { isActive: activate }
+                }
+            );
 
-        if (!response?.success || !response.data || typeof response.data !== "object") {
-            throw new Error("The student status endpoint returned an unexpected response.");
-        }
+            if (!response?.success || !response.data || typeof response.data !== "object") {
+                throw new Error("The student status endpoint returned an unexpected response.");
+            }
 
-        const updatedStudent = normalizeStudent(response.data);
-        updatedStudent.id = studentId;
+            const updatedStudent = normalizeStudent(response.data);
+            updatedStudent.id = studentId;
 
-        const index = students.findIndex(student => student.id === studentId);
-        if (index !== -1) {
-            students[index] = { ...students[index], ...updatedStudent };
+            const index = students.findIndex(student => student.id === studentId);
+            if (index !== -1) {
+                students[index] = { ...students[index], ...updatedStudent };
+            }
         }
 
         updateStudentSummary();
@@ -628,10 +657,16 @@ async function executeStudentStatusChange() {
         lastStatusTrigger = null;
         studentSearch?.focus();
     } catch (error) {
-        console.error("ExamHub student status update error:", error);
+        console.error(`ExamHub student ${action} error:`, {
+            studentId,
+            message: error?.message || "Unknown request error",
+            name: error?.name || "Error"
+        });
         const message = document.getElementById("studentConfirmError");
         if (message) {
-            message.textContent = "Unable to update the student's status. Please try again.";
+            message.textContent = action === "delete"
+                ? error?.message || "Unable to delete the student account."
+                : "Unable to update the student's status. Please try again.";
             message.classList.remove("hidden");
         }
     } finally {

@@ -637,6 +637,17 @@ body.student-modal-open {
     background: #b91c1c;
 }
 
+.student-row-actions .delete-action {
+    border-color: #fecaca;
+    background: #fffafa;
+    color: #b42318;
+}
+
+.student-row-actions .delete-action:hover:not(:disabled) {
+    border-color: #fca5a5;
+    background: #fef2f2;
+}
+
 .save-spinner {
     width: 14px;
     height: 14px;
