@@ -262,7 +262,7 @@
                 <div>
                     <span class="question-modal-eyebrow">Question bank</span>
                     <h2 id="bulkQuestionTitle">Bulk Add Questions</h2>
-                    <p>Paste one question per block. Select the course once for the batch; each question is validated separately.</p>
+                    <p>Paste questions in a familiar format, add an optional answer key, and review every parsed question before saving.</p>
                 </div>
                 <button type="button" class="question-modal-close" data-close-modal aria-label="Close dialog">×</button>
             </header>
@@ -273,15 +273,33 @@
                         <option value="">Select a course</option>
                     </select>
                 </label>
+                <label class="question-form-field" for="bulkAnswerMode">
+                    <span>Answer format</span>
+                    <select id="bulkAnswerMode">
+                        <option value="embedded">Answers included with questions</option>
+                        <option value="separate">Questions and options + separate answer key</option>
+                    </select>
+                </label>
                 <label class="question-form-field" for="bulkQuestionInput">
                     <span>Questions to paste</span>
-                    <textarea id="bulkQuestionInput" rows="11" spellcheck="false" placeholder="QUESTION: What does HTML stand for?&#10;A: HyperText Markup Language&#10;B: HighText Machine Language&#10;C: Hyper Transfer Markup Language&#10;D: Home Tool Markup Language&#10;ANSWER: A&#10;&#10;QUESTION: Which language is primarily used to style web pages?&#10;A: HTML&#10;B: CSS&#10;C: SQL&#10;D: JSON&#10;ANSWER: B"></textarea>
+                    <textarea id="bulkQuestionInput" rows="9" spellcheck="false" placeholder="QUESTION 1: What does HTML stand for?&#10;A. HyperText Markup Language&#10;B) HighText Machine Language&#10;(C) Hyper Transfer Markup Language&#10;D - Home Tool Markup Language&#10;Correct Answer: A&#10;&#10;Which language is used to style web pages?&#10;A: HTML&#10;B: CSS&#10;C: SQL&#10;D: JSON&#10;Answer - B"></textarea>
                 </label>
                 <p class="bulk-question-format">
-                    Separate questions with a blank line. Each block must contain <code>QUESTION:</code>,
-                    <code>A:</code>, <code>B:</code>, <code>C:</code>, <code>D:</code> and
-                    <code>ANSWER: A|B|C|D</code>. New questions default to 1 mark; edit marks below.
+                    Question headings such as <code>QUESTION:</code>, <code>Q1:</code>, and
+                    <code>1.</code> are optional. Options may use A., A), (A), A: or A -.
+                    A blank line is helpful but not required. Plain question text followed by A-D options is supported.
                 </p>
+                <label class="question-form-field bulk-answer-key-field" id="bulkAnswerKeyField" for="bulkAnswerKey" hidden>
+                    <span>Optional answer key</span>
+                    <textarea id="bulkAnswerKey" rows="3" placeholder="1-A, 2-C, 3-B, 4-D&#10;or one answer per line:&#10;A&#10;C&#10;B"></textarea>
+                    <small>Use question numbers (for example, Question 1: A) or one answer per line in parsed question order. Existing answers that conflict will be flagged.</small>
+                </label>
+                <div class="bulk-file-tools">
+                    <label class="question-button question-button-secondary bulk-file-label" for="bulkQuestionFile">Choose CSV / TSV</label>
+                    <input type="file" id="bulkQuestionFile" accept=".csv,.tsv,text/csv,text/tab-separated-values" hidden>
+                    <button type="button" class="question-button question-button-secondary" id="downloadQuestionTemplateButton">Download CSV template</button>
+                    <span>Columns: question, A, B, C, D, answer, marks</span>
+                </div>
                 <p class="question-form-message" id="bulkQuestionMessage" role="alert" hidden></p>
                 <div class="bulk-question-preview-header">
                     <h3>Preview and correct entries</h3>
@@ -301,6 +319,7 @@
     </div>
 
     <script src="./js/admin.js"></script>
+    <script src="./js/questionImportParser.js"></script>
     <script src="./js/questions.js"></script>
 </body>
 </html>

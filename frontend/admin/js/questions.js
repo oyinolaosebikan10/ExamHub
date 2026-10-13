@@ -18,6 +18,9 @@
         toastTimer: null,
         bulkQuestions: [],
         bulkSaving: false,
+        bulkFormat: "text",
+        bulkImportErrors: [],
+        bulkPreviewDirty: true,
     };
 
     const elements = {
@@ -76,6 +79,11 @@
         confirmSpinner: document.getElementById("confirmQuestionSpinner"),
         bulkModal: document.getElementById("bulkQuestionModal"),
         bulkCourse: document.getElementById("bulkQuestionCourse"),
+        bulkAnswerMode: document.getElementById("bulkAnswerMode"),
+        bulkAnswerKey: document.getElementById("bulkAnswerKey"),
+        bulkAnswerKeyField: document.getElementById("bulkAnswerKeyField"),
+        bulkFile: document.getElementById("bulkQuestionFile"),
+        bulkTemplate: document.getElementById("downloadQuestionTemplateButton"),
         bulkInput: document.getElementById("bulkQuestionInput"),
         bulkMessage: document.getElementById("bulkQuestionMessage"),
         bulkPreviewButton: document.getElementById("previewBulkQuestionsButton"),
@@ -417,6 +425,13 @@
             selectedCourse === "all" ? "" : selectedCourse
         );
         elements.bulkInput.value = "";
+        elements.bulkAnswerKey.value = "";
+        elements.bulkAnswerMode.value = "embedded";
+        elements.bulkAnswerKeyField.hidden = true;
+        elements.bulkFile.value = "";
+        state.bulkFormat = "text";
+        state.bulkImportErrors = [];
+        state.bulkPreviewDirty = true;
         elements.bulkMessage.hidden = true;
         elements.bulkMessage.textContent = "";
         elements.bulkSummary.textContent = "";
@@ -428,77 +443,26 @@
         openModal(elements.bulkModal);
     }
 
-    function parseBulkQuestionText(text) {
-        const blocks = text
-            .trim()
-            .split(/\r?\n\s*\r?\n/)
-            .map((block) => block.trim())
-            .filter(Boolean);
-
-        return blocks.map((block, index) => {
-            const entry = {
-                question: "",
-                options: { A: "", B: "", C: "", D: "" },
-                correctAnswer: "",
-                marks: 1,
-                parseErrors: [],
-                serverStatus: "",
-                serverErrors: [],
-                savedId: null,
-            };
-            const seen = new Set();
-
-            block.split(/\r?\n/).forEach((rawLine, lineIndex) => {
-                const line = rawLine.trim();
-                if (!line) return;
-
-                const match = line.match(
-                    /^(QUESTION|ANSWER|[A-D])\s*:\s*(.*)$/i
-                );
-                if (!match) {
-                    entry.parseErrors.push(
-                        `Line ${lineIndex + 1}: expected QUESTION:, A:, B:, C:, D:, or ANSWER:.`
-                    );
-                    return;
-                }
-
-                const key = match[1].toUpperCase();
-                if (seen.has(key)) {
-                    entry.parseErrors.push(`Duplicate ${key}: field.`);
-                    return;
-                }
-                seen.add(key);
-
-                if (key === "QUESTION") {
-                    entry.question = match[2].trim();
-                } else if (key === "ANSWER") {
-                    entry.correctAnswer = match[2].trim().toUpperCase();
-                } else {
-                    entry.options[key] = match[2].trim();
-                }
-            });
-
-            if (entry.parseErrors.length) {
-                entry.parseErrors = [
-                    `Block ${index + 1}:`,
-                    ...entry.parseErrors
-                ];
-            }
-            return entry;
-        });
-    }
-
     function validateBulkEntry(entry) {
         const errors = [...entry.parseErrors, ...entry.serverErrors];
         if (!elements.bulkCourse.value) errors.push("Select a course");
         if (!entry.question.trim()) errors.push("Question is required");
+        if (entry.question.trim().length > 5000) errors.push("Question exceeds 5,000 characters");
         for (const key of optionKeys) {
             if (!entry.options[key].trim()) {
                 errors.push(`Option ${key} is required`);
+            } else if (entry.options[key].trim().length > 2000) {
+                errors.push(`Option ${key} exceeds 2,000 characters`);
             }
         }
         if (!optionKeys.includes(entry.correctAnswer)) {
             errors.push("Correct answer must be A, B, C, or D");
+        }
+        if (entry.answerConflict && !entry.answerConflictConfirmed) {
+            errors.push("Confirm the embedded or separate answer in the answer selector");
+        }
+        if (entry.reviewWarning && !entry.reviewConfirmed) {
+            errors.push("Review and confirm the flagged parsing boundary");
         }
         if (!Number.isInteger(Number(entry.marks)) || Number(entry.marks) < 1) {
             errors.push("Marks must be a positive whole number");
@@ -561,8 +525,19 @@
             control.step = "1";
             control.value = String(value);
         } else {
+            if (
+                field === "correctAnswer" &&
+                state.bulkQuestions[index].answerConflict &&
+                !state.bulkQuestions[index].answerConflictConfirmed
+            ) {
+                addOption(control, "", "Confirm or correct answer");
+            }
             optionKeys.forEach((key) => addOption(control, key, key));
-            control.value = value;
+            control.value =
+                state.bulkQuestions[index].answerConflict &&
+                !state.bulkQuestions[index].answerConflictConfirmed
+                    ? ""
+                    : value;
         }
         control.disabled =
             state.bulkQuestions[index].serverStatus === "created";
@@ -571,8 +546,11 @@
     }
 
     function canRetryBulkEntry(entry) {
+        const index = state.bulkQuestions.indexOf(entry);
         return entry.serverStatus !== "created" &&
             entry.serverStatus !== "duplicate" &&
+            index >= 0 &&
+            !findBulkDuplicate(index) &&
             validateBulkEntry(entry).length === 0;
     }
 
@@ -676,14 +654,31 @@
                     )
                 );
             }
+            if (entry.reviewWarning && !entry.reviewConfirmed && !isSaved) {
+                const reviewLabel = document.createElement("label");
+                reviewLabel.className = "bulk-question-review";
+                const review = document.createElement("input");
+                review.type = "checkbox";
+                review.dataset.reviewIndex = String(index);
+                reviewLabel.append(
+                    review,
+                    textElement(
+                        "span",
+                        `I reviewed this question boundary: ${entry.reviewWarning}`
+                    )
+                );
+                card.append(reviewLabel);
+            }
             elements.bulkPreview.append(card);
         });
 
+        const attentionCount = invalidCount + state.bulkImportErrors.length;
         elements.bulkSummary.textContent = state.bulkQuestions.length
-            ? `${state.bulkQuestions.length} entries · ${readyCount} ready · ${invalidCount} need correction or are duplicates.`
+            ? `${readyCount} parsed successfully · ${attentionCount} require attention${state.bulkImportErrors.length ? ` · ${state.bulkImportErrors.join(" ")}` : ""}`
             : "No questions parsed yet.";
         elements.bulkConfirm.disabled =
             state.bulkSaving ||
+            state.bulkPreviewDirty ||
             !state.bulkQuestions.some(canRetryBulkEntry);
     }
 
@@ -697,8 +692,67 @@
             return;
         }
 
-        state.bulkQuestions = parseBulkQuestionText(elements.bulkInput.value);
+        const parsed = window.ExamHubQuestionImportParser.parseQuestionImport({
+            text: elements.bulkInput.value,
+            answerKey: elements.bulkAnswerKey.value,
+            answerMode: elements.bulkAnswerMode.value,
+            format: state.bulkFormat,
+        });
+        state.bulkQuestions = parsed.entries;
+        state.bulkImportErrors = parsed.errors;
+        state.bulkPreviewDirty = false;
+        if (!state.bulkQuestions.length && parsed.errors.length) {
+            elements.bulkMessage.textContent = parsed.errors.join(" ");
+            elements.bulkMessage.hidden = false;
+        }
         renderBulkQuestions();
+    }
+
+    async function loadBulkQuestionFile() {
+        const file = elements.bulkFile.files?.[0];
+        if (!file) return;
+        const extension = file.name.toLowerCase().split(".").pop();
+        if (!["csv", "tsv"].includes(extension)) {
+            elements.bulkMessage.textContent = "Choose a CSV or TSV file.";
+            elements.bulkMessage.hidden = false;
+            elements.bulkFile.value = "";
+            return;
+        }
+        try {
+            elements.bulkInput.value = await file.text();
+            state.bulkFormat = extension;
+            elements.bulkMessage.hidden = true;
+            elements.bulkAnswerMode.value = "embedded";
+            elements.bulkAnswerKeyField.hidden = true;
+            previewBulkQuestions();
+        } catch (error) {
+            console.error("Unable to read question import file.", {
+                message: error?.message || "Unknown file error",
+            });
+            elements.bulkMessage.textContent =
+                "The selected file could not be read. Try saving it as UTF-8 CSV or TSV.";
+            elements.bulkMessage.hidden = false;
+        }
+    }
+
+    function downloadBulkQuestionTemplate() {
+        const blob = new Blob(
+            [window.ExamHubQuestionImportParser.toCsvTemplate()],
+            { type: "text/csv;charset=utf-8" }
+        );
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "examhub-question-template.csv";
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function markBulkPreviewDirty() {
+        state.bulkPreviewDirty = true;
+        elements.bulkConfirm.disabled = true;
+        elements.bulkSummary.textContent =
+            "Import details changed. Preview again before saving.";
     }
 
     function handleBulkPreviewInput(event) {
@@ -714,9 +768,25 @@
         } else {
             entry[field.dataset.field] = value;
         }
+        if (field.dataset.field === "correctAnswer" && entry.answerConflict) {
+            const resolvedMessage =
+                window.ExamHubQuestionImportParser.resolveAnswerConflict(
+                    entry,
+                    value
+                );
+            if (resolvedMessage) {
+                state.bulkImportErrors = state.bulkImportErrors.filter(
+                    (message) => message !== resolvedMessage
+                );
+            }
+        }
         entry.serverStatus = "";
         entry.serverErrors = [];
-        entry.parseErrors = [];
+        if (!entry.answerConflictConfirmed && entry.answerConflict) {
+            entry.parseErrors = [entry.answerConflict];
+        } else {
+            entry.parseErrors = [];
+        }
 
         const card = field.closest(".bulk-question-entry");
         const duplicate = findBulkDuplicate(index);
@@ -753,10 +823,12 @@
             (entry) => entry.serverStatus === "created"
         ).length;
         const invalidCount =
-            state.bulkQuestions.length - readyCount - savedCount;
+            state.bulkQuestions.length - readyCount - savedCount +
+            state.bulkImportErrors.length;
         elements.bulkSummary.textContent =
-            `${state.bulkQuestions.length} entries · ${readyCount} ready · ${invalidCount} need correction or are duplicates.`;
-        elements.bulkConfirm.disabled = state.bulkSaving || readyCount === 0;
+            `${readyCount} parsed successfully · ${invalidCount} require attention.`;
+        elements.bulkConfirm.disabled =
+            state.bulkSaving || state.bulkPreviewDirty || readyCount === 0;
     }
 
     function handleBulkPreviewClick(event) {
@@ -767,9 +839,21 @@
         renderBulkQuestions();
     }
 
+    function handleBulkReviewChange(event) {
+        const checkbox = event.target.closest("input[data-review-index]");
+        if (!checkbox) return;
+        const entry = state.bulkQuestions[Number(checkbox.dataset.reviewIndex)];
+        if (!entry) return;
+        window.ExamHubQuestionImportParser.confirmParseReview(
+            entry,
+            checkbox.checked
+        );
+        renderBulkQuestions();
+    }
+
     function openBulkQuestionConfirmation() {
         const readyCount = state.bulkQuestions.filter(canRetryBulkEntry).length;
-        if (!readyCount || state.bulkSaving) return;
+        if (!readyCount || state.bulkSaving || state.bulkPreviewDirty) return;
 
         state.pendingAction = { action: "bulk" };
         elements.confirmTitle.textContent = "Save valid questions?";
@@ -837,10 +921,14 @@
             });
 
             closeModal(elements.confirmModal);
+            const skippedCount = state.bulkQuestions.filter(
+                (entry, index) =>
+                    !sourceIndexes.includes(index) &&
+                    entry.serverStatus !== "created"
+            ).length;
             const summary =
-                `Saved ${result.savedCount} question${result.savedCount === 1 ? "" : "s"}; ` +
-                `${result.duplicateCount} duplicate${result.duplicateCount === 1 ? "" : "s"}; ` +
-                `${result.failedCount} invalid.`;
+                `Created ${result.savedCount}; ${result.duplicateCount} duplicate; ` +
+                `${result.failedCount} rejected by validation; ${skippedCount} invalid or duplicate entries skipped before submission.`;
             elements.bulkResult.textContent = summary;
             elements.bulkResult.classList.toggle(
                 "is-error",
@@ -1158,6 +1246,18 @@
         elements.add.addEventListener("click", () => openForm());
         elements.emptyAdd.addEventListener("click", () => openForm());
         elements.bulkAdd.addEventListener("click", openBulkQuestionModal);
+        elements.bulkAnswerMode.addEventListener("change", () => {
+            elements.bulkAnswerKeyField.hidden =
+                elements.bulkAnswerMode.value !== "separate";
+            markBulkPreviewDirty();
+        });
+        elements.bulkInput.addEventListener("input", () => {
+            state.bulkFormat = "text";
+            markBulkPreviewDirty();
+        });
+        elements.bulkAnswerKey.addEventListener("input", markBulkPreviewDirty);
+        elements.bulkFile.addEventListener("change", loadBulkQuestionFile);
+        elements.bulkTemplate.addEventListener("click", downloadBulkQuestionTemplate);
         elements.bulkCourse.addEventListener("change", () => {
             state.bulkQuestions.forEach((entry) => {
                 if (entry.serverStatus === "created") return;
@@ -1171,6 +1271,7 @@
         elements.bulkPreview.addEventListener("input", handleBulkPreviewInput);
         elements.bulkPreview.addEventListener("change", handleBulkPreviewInput);
         elements.bulkPreview.addEventListener("click", handleBulkPreviewClick);
+        elements.bulkPreview.addEventListener("change", handleBulkReviewChange);
         elements.clearFilters.addEventListener("click", clearFilters);
         elements.search.addEventListener("input", renderQuestions);
         elements.courseFilter.addEventListener("change", renderQuestions);
