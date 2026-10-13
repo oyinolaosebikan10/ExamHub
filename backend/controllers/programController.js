@@ -5,6 +5,7 @@ const {
     updateProgram,
     deactivateProgram,
     reactivateProgram,
+    deleteProgram,
     getAvailableProgramsForRegistration
 } = require("../services/programService");
 
@@ -267,6 +268,42 @@ const reactivateProgramController = async (req, res) => {
     }
 };
 
+const deleteProgramController = async (req, res) => {
+    try {
+        const result = await deleteProgram(req.params.programId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Program permanently deleted",
+            data: result
+        });
+    } catch (error) {
+        console.error("Delete program error:", error);
+
+        if (error.message === "Program not found") {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (
+            error.message.startsWith("Deactivate the program") ||
+            error.message.startsWith("Program has ")
+        ) {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to delete program"
+        });
+    }
+};
+
 const getAvailableProgramsController = async (req, res) => {
     try {
         const programs =
@@ -297,5 +334,6 @@ module.exports = {
     updateProgramController,
     deactivateProgramController,
     reactivateProgramController,
+    deleteProgramController,
     getAvailableProgramsController
 };

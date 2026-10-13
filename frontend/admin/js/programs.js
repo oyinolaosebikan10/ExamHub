@@ -1146,6 +1146,18 @@ function renderProgramRow(program) {
                         }
                     </button>
 
+                    <button
+                        type="button"
+                        class="row-action delete-program-action"
+                        title="Delete program permanently"
+                        aria-label="Delete ${escapeHtml(program.name || "program")} permanently"
+                        data-action="delete"
+                        data-id="${escapeHtml(program.id)}"
+                        ${lifecycleActionInProgress ? "disabled" : ""}
+                    >
+                        Delete
+                    </button>
+
                 </div>
 
             </td>
@@ -1207,7 +1219,11 @@ document.addEventListener(
             return;
         }
 
-        if (action === "deactivate" || action === "reactivate") {
+        if (
+            action === "deactivate" ||
+            action === "reactivate" ||
+            action === "delete"
+        ) {
             openLifecycleConfirmModal(id, action, actionButton);
         }
 
@@ -1239,13 +1255,23 @@ function openLifecycleConfirmModal(programIdValue, action, trigger) {
     };
 
     const isDeactivation = action === "deactivate";
-    lifecycleConfirmTitle.textContent = isDeactivation
-        ? "Deactivate Program?"
-        : "Reactivate Program?";
-    lifecycleConfirmMessage.textContent = isDeactivation
-        ? `${program.name || "This program"} will be unavailable for new exams, enrollments, registration, and exam sessions. Existing records will be preserved.`
-        : `${program.name || "This program"} will be marked active. Schedule restrictions on registration and exams will still apply.`;
-    confirmLifecycleText.textContent = isDeactivation ? "Deactivate Program" : "Reactivate Program";
+    const isDeletion = action === "delete";
+    lifecycleConfirmTitle.textContent = isDeletion
+        ? "Delete Program Permanently?"
+        : isDeactivation
+            ? "Deactivate Program?"
+            : "Reactivate Program?";
+    lifecycleConfirmMessage.textContent = isDeletion
+        ? `Permanently delete “${program.name || "this program"}”? Deletion is allowed only after deactivation and only when there are no enrollments, exams, or exam sessions. Historical records are never cascade-deleted.`
+        : isDeactivation
+            ? `${program.name || "This program"} will be unavailable for new exams, enrollments, registration, and exam sessions. Existing records will be preserved.`
+            : `${program.name || "This program"} will be marked active. Schedule restrictions on registration and exams will still apply.`;
+    confirmLifecycleBtn.dataset.action = action;
+    confirmLifecycleText.textContent = isDeletion
+        ? "Delete Permanently"
+        : isDeactivation
+            ? "Deactivate Program"
+            : "Reactivate Program";
     lifecycleConfirmError.textContent = "";
     lifecycleConfirmError.classList.add("hidden");
     lifecycleConfirmModal.classList.remove("hidden");
@@ -1278,9 +1304,13 @@ function setLifecycleActionBusy(isBusy) {
     confirmLifecycleSpinner.classList.toggle("hidden", !isBusy);
     confirmLifecycleText.textContent = isBusy
         ? "Saving..."
-        : pendingLifecycleAction?.action === "deactivate"
-            ? "Deactivate Program"
-            : "Reactivate Program";
+        : pendingLifecycleAction?.action === "delete"
+            ? "Delete Permanently"
+            : pendingLifecycleAction?.action === "deactivate"
+                ? "Deactivate Program"
+                : "Reactivate Program";
+    confirmLifecycleBtn.dataset.action =
+        pendingLifecycleAction?.action || "";
 }
 
 async function performLifecycleAction() {
@@ -1292,16 +1322,28 @@ async function performLifecycleAction() {
     setLifecycleActionBusy(true);
 
     try {
-        await adminFetch(
-            `${PROGRAMS_API_URL}/${encodeURIComponent(targetProgramId)}/${action}`,
-            { method: "PATCH" }
-        );
-
-        const program = programs.find(item => item.id === targetProgramId);
-        if (program) {
-            program.isActive = action === "reactivate";
+        if (action === "delete") {
+            await adminFetch(
+                `${PROGRAMS_API_URL}/${encodeURIComponent(targetProgramId)}`,
+                { method: "DELETE" }
+            );
+            programs = programs.filter(
+                program => program.id !== targetProgramId
+            );
             updateProgramSummary();
             renderPrograms();
+        } else {
+            await adminFetch(
+                `${PROGRAMS_API_URL}/${encodeURIComponent(targetProgramId)}/${action}`,
+                { method: "PATCH" }
+            );
+
+            const program = programs.find(item => item.id === targetProgramId);
+            if (program) {
+                program.isActive = action === "reactivate";
+                updateProgramSummary();
+                renderPrograms();
+            }
         }
 
         setLifecycleActionBusy(false);
@@ -1313,9 +1355,11 @@ async function performLifecycleAction() {
             nextTrigger.focus();
         }
         showLifecycleToast(
-            action === "deactivate"
-                ? "Program deactivated. Existing records have been preserved."
-                : "Program reactivated."
+            action === "delete"
+                ? "Program permanently deleted."
+                : action === "deactivate"
+                    ? "Program deactivated. Existing records have been preserved."
+                    : "Program reactivated."
         );
     } catch (error) {
         console.error("Failed to update program lifecycle:", error);
@@ -1340,6 +1384,23 @@ function friendlyLifecycleError(error, action) {
 
     if (message.includes("not found")) {
         return "This program could not be found. Refresh the list and try again.";
+    }
+
+    if (message.includes("deactivate the program")) {
+        return "Deactivate the program before permanently deleting it.";
+    }
+    if (message.includes("enrollment records")) {
+        return "This program has enrollments. Keep it inactive so student records remain available.";
+    }
+    if (message.includes("exam sessions")) {
+        return "This program has exam sessions. Keep it inactive so attempt history remains intact.";
+    }
+    if (message.includes("has exams")) {
+        return "This program has exams. Keep it inactive so exams and results are preserved.";
+    }
+
+    if (action === "delete") {
+        return "Unable to delete this program. Refresh the list and try again.";
     }
 
     return `Unable to ${action} this program. Please try again.`;

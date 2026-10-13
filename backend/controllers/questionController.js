@@ -20,6 +20,50 @@ const createQuestion = async (req, res) => {
     }
 };
 
+const bulkCreateQuestions = async (req, res) => {
+    try {
+        if (!Array.isArray(req.body?.questions)) {
+            return res.status(400).json({
+                success: false,
+                message: "Questions must be provided as an array"
+            });
+        }
+
+        const result = await questionService.bulkCreateQuestions(
+            req.body.questions
+        );
+        const hasFailures =
+            result.failedCount > 0 || result.duplicateCount > 0;
+
+        return res.status(200).json({
+            success: true,
+            message: hasFailures
+                ? "The batch was processed with some invalid or duplicate questions."
+                : "All questions were added successfully.",
+            data: result
+        });
+    } catch (error) {
+        if (
+            error.message === "At least one question is required" ||
+            error.message === "A batch may contain no more than 300 questions"
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        console.error("Bulk question creation failed:", {
+            message: error?.message || "Unknown database error",
+            code: error?.code || null
+        });
+        return res.status(500).json({
+            success: false,
+            message: "Unable to save the question batch. No questions from this batch were saved."
+        });
+    }
+};
+
 const getQuestions = async (req, res) => {
     try {
         const { courseId } = req.query;
@@ -106,6 +150,7 @@ const deleteQuestion = async (req, res) => {
 
 module.exports = {
     createQuestion,
+    bulkCreateQuestions,
     getQuestions,
     getQuestionById,
     updateQuestion,

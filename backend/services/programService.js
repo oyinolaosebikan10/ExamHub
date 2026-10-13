@@ -5,6 +5,9 @@ const {
 
 const programsCollection = db.collection("programs");
 const schoolsCollection = db.collection("schools");
+const enrollmentsCollection = db.collection("enrollments");
+const examsCollection = db.collection("exams");
+const examSessionsCollection = db.collection("examSessions");
 
 /**
  * Convert Firestore Timestamp, Date, or date string into a Date.
@@ -519,6 +522,68 @@ const deactivateProgram = async (programId) =>
 const reactivateProgram = async (programId) =>
     updateProgramLifecycle(programId, true);
 
+const deleteProgram = async (programId) => {
+    if (!programId) {
+        throw new Error("Program not found");
+    }
+
+    const programRef = programsCollection.doc(programId);
+
+    return db.runTransaction(async (transaction) => {
+        const programDoc = await transaction.get(programRef);
+
+        if (!programDoc.exists) {
+            throw new Error("Program not found");
+        }
+
+        if (isProgramActive(programDoc.data())) {
+            throw new Error(
+                "Deactivate the program before permanently deleting it"
+            );
+        }
+
+        const [enrollments, exams, sessions] = await Promise.all([
+            transaction.get(
+                enrollmentsCollection
+                    .where("programId", "==", programId)
+                    .limit(1)
+            ),
+            transaction.get(
+                examsCollection
+                    .where("programId", "==", programId)
+                    .limit(1)
+            ),
+            transaction.get(
+                examSessionsCollection
+                    .where("programId", "==", programId)
+                    .limit(1)
+            )
+        ]);
+
+        if (!enrollments.empty) {
+            throw new Error(
+                "Program has enrollment records and cannot be permanently deleted. Keep it inactive to preserve its history."
+            );
+        }
+
+        if (!sessions.empty) {
+            throw new Error(
+                "Program has exam sessions and cannot be permanently deleted. Keep it inactive to preserve its history."
+            );
+        }
+
+        if (!exams.empty) {
+            throw new Error(
+                "Program has exams and cannot be permanently deleted. Keep it inactive to preserve its history."
+            );
+        }
+
+        transaction.delete(programRef);
+
+        return { id: programId, deleted: true };
+    });
+};
+
 /**
  * Determine the current availability of a program.
  */
@@ -644,6 +709,7 @@ module.exports = {
     updateProgram,
     deactivateProgram,
     reactivateProgram,
+    deleteProgram,
     isProgramActive,
     isProgramScheduleCompleted,
     getProgramAvailability,

@@ -7,6 +7,7 @@ const {
     updateProgramController,
     deactivateProgramController,
     reactivateProgramController,
+    deleteProgramController,
     getAvailableProgramsController
 } = require("../controllers/programController");
 
@@ -48,6 +49,13 @@ router.patch(
     authMiddleware,
     roleMiddleware("admin"),
     reactivateProgramController
+);
+
+router.delete(
+    "/:programId",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteProgramController
 );
 
 // Get one program - Admin only

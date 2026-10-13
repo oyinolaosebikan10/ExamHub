@@ -123,6 +123,12 @@
     text-align: center;
 }
 
+.notifications-loading[hidden],
+.notifications-error[hidden],
+.notifications-empty[hidden] {
+    display: none;
+}
+
 .notifications-error p {
     color: #b91c1c;
 }

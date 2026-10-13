@@ -16,6 +16,8 @@
         pageState: "loading",
         pendingAction: null,
         toastTimer: null,
+        bulkQuestions: [],
+        bulkSaving: false,
     };
 
     const elements = {
@@ -39,6 +41,7 @@
         tableBody: document.getElementById("questionsTableBody"),
         refresh: document.getElementById("refreshQuestionsButton"),
         add: document.getElementById("addQuestionButton"),
+        bulkAdd: document.getElementById("bulkAddQuestionsButton"),
         retry: document.getElementById("retryQuestionsButton"),
         toast: document.getElementById("questionToast"),
         formModal: document.getElementById("questionFormModal"),
@@ -71,6 +74,15 @@
         confirmButton: document.getElementById("confirmQuestionActionButton"),
         confirmText: document.getElementById("confirmQuestionActionText"),
         confirmSpinner: document.getElementById("confirmQuestionSpinner"),
+        bulkModal: document.getElementById("bulkQuestionModal"),
+        bulkCourse: document.getElementById("bulkQuestionCourse"),
+        bulkInput: document.getElementById("bulkQuestionInput"),
+        bulkMessage: document.getElementById("bulkQuestionMessage"),
+        bulkPreviewButton: document.getElementById("previewBulkQuestionsButton"),
+        bulkSummary: document.getElementById("bulkQuestionSummary"),
+        bulkPreview: document.getElementById("bulkQuestionPreview"),
+        bulkResult: document.getElementById("bulkQuestionResult"),
+        bulkConfirm: document.getElementById("confirmBulkQuestionsButton"),
     };
 
     function safeQuestion(record) {
@@ -368,6 +380,20 @@
         elements.course.value = selectedId;
     }
 
+    function populateBulkCourseSelect(selectedId = "") {
+        elements.bulkCourse.replaceChildren();
+        addOption(elements.bulkCourse, "", "Select a course");
+        [...state.courses]
+            .sort((left, right) => left.name.localeCompare(right.name))
+            .forEach((course) => {
+                const label = `${course.name || "Unnamed course"}${course.isActive === false ? " (inactive)" : ""}`;
+                addOption(elements.bulkCourse, course.id, label);
+            });
+        elements.bulkCourse.value = state.courseById.has(selectedId)
+            ? selectedId
+            : "";
+    }
+
     function updateCorrectAnswerOptions() {
         const current = elements.correctAnswer.value;
         elements.correctAnswer.replaceChildren();
@@ -383,6 +409,467 @@
         elements.formMessage.textContent = "";
     }
 
+    function openBulkQuestionModal() {
+        if (state.loading || state.saving || state.pageState !== "ready") return;
+
+        const selectedCourse = elements.courseFilter.value;
+        populateBulkCourseSelect(
+            selectedCourse === "all" ? "" : selectedCourse
+        );
+        elements.bulkInput.value = "";
+        elements.bulkMessage.hidden = true;
+        elements.bulkMessage.textContent = "";
+        elements.bulkSummary.textContent = "";
+        elements.bulkResult.hidden = true;
+        elements.bulkResult.textContent = "";
+        elements.bulkPreview.replaceChildren();
+        elements.bulkConfirm.disabled = true;
+        state.bulkQuestions = [];
+        openModal(elements.bulkModal);
+    }
+
+    function parseBulkQuestionText(text) {
+        const blocks = text
+            .trim()
+            .split(/\r?\n\s*\r?\n/)
+            .map((block) => block.trim())
+            .filter(Boolean);
+
+        return blocks.map((block, index) => {
+            const entry = {
+                question: "",
+                options: { A: "", B: "", C: "", D: "" },
+                correctAnswer: "",
+                marks: 1,
+                parseErrors: [],
+                serverStatus: "",
+                serverErrors: [],
+                savedId: null,
+            };
+            const seen = new Set();
+
+            block.split(/\r?\n/).forEach((rawLine, lineIndex) => {
+                const line = rawLine.trim();
+                if (!line) return;
+
+                const match = line.match(
+                    /^(QUESTION|ANSWER|[A-D])\s*:\s*(.*)$/i
+                );
+                if (!match) {
+                    entry.parseErrors.push(
+                        `Line ${lineIndex + 1}: expected QUESTION:, A:, B:, C:, D:, or ANSWER:.`
+                    );
+                    return;
+                }
+
+                const key = match[1].toUpperCase();
+                if (seen.has(key)) {
+                    entry.parseErrors.push(`Duplicate ${key}: field.`);
+                    return;
+                }
+                seen.add(key);
+
+                if (key === "QUESTION") {
+                    entry.question = match[2].trim();
+                } else if (key === "ANSWER") {
+                    entry.correctAnswer = match[2].trim().toUpperCase();
+                } else {
+                    entry.options[key] = match[2].trim();
+                }
+            });
+
+            if (entry.parseErrors.length) {
+                entry.parseErrors = [
+                    `Block ${index + 1}:`,
+                    ...entry.parseErrors
+                ];
+            }
+            return entry;
+        });
+    }
+
+    function validateBulkEntry(entry) {
+        const errors = [...entry.parseErrors, ...entry.serverErrors];
+        if (!elements.bulkCourse.value) errors.push("Select a course");
+        if (!entry.question.trim()) errors.push("Question is required");
+        for (const key of optionKeys) {
+            if (!entry.options[key].trim()) {
+                errors.push(`Option ${key} is required`);
+            }
+        }
+        if (!optionKeys.includes(entry.correctAnswer)) {
+            errors.push("Correct answer must be A, B, C, or D");
+        }
+        if (!Number.isInteger(Number(entry.marks)) || Number(entry.marks) < 1) {
+            errors.push("Marks must be a positive whole number");
+        }
+        return [...new Set(errors)];
+    }
+
+    function normalizedPrompt(value) {
+        return value
+            .normalize("NFC")
+            .trim()
+            .replace(/\s+/g, " ")
+            .toLocaleLowerCase();
+    }
+
+    function findBulkDuplicate(index) {
+        const entry = state.bulkQuestions[index];
+        const normalized = normalizedPrompt(entry.question);
+        if (!normalized || !elements.bulkCourse.value) return null;
+
+        const existing = state.questions.find(
+            (question) =>
+                question.courseId === elements.bulkCourse.value &&
+                normalizedPrompt(question.question) === normalized
+        );
+        if (existing) return "This question already exists in the selected course.";
+
+        const earlier = state.bulkQuestions.findIndex(
+            (candidate, candidateIndex) =>
+                candidateIndex < index &&
+                normalizedPrompt(candidate.question) === normalized
+        );
+        return earlier >= 0
+            ? `This duplicates question ${earlier + 1} in the batch.`
+            : null;
+    }
+
+    function createBulkField(label, value, index, field, optionKey = "") {
+        const wrapper = document.createElement("label");
+        wrapper.className = "question-form-field";
+        const caption = document.createElement("span");
+        caption.textContent = label;
+        const tag =
+            field === "correctAnswer"
+                ? "select"
+                : field === "marks"
+                    ? "input"
+                    : "textarea";
+        const control = document.createElement(tag);
+        control.className = "bulk-question-field";
+        control.dataset.entryIndex = String(index);
+        control.dataset.field = field;
+        if (optionKey) control.dataset.optionKey = optionKey;
+        if (field === "question" || field === "option") {
+            control.rows = field === "question" ? 2 : 1;
+            control.value = value;
+        } else if (field === "marks") {
+            control.type = "number";
+            control.min = "1";
+            control.step = "1";
+            control.value = String(value);
+        } else {
+            optionKeys.forEach((key) => addOption(control, key, key));
+            control.value = value;
+        }
+        control.disabled =
+            state.bulkQuestions[index].serverStatus === "created";
+        wrapper.append(caption, control);
+        return wrapper;
+    }
+
+    function canRetryBulkEntry(entry) {
+        return entry.serverStatus !== "created" &&
+            entry.serverStatus !== "duplicate" &&
+            validateBulkEntry(entry).length === 0;
+    }
+
+    function renderBulkQuestions() {
+        elements.bulkPreview.replaceChildren();
+        let readyCount = 0;
+        let invalidCount = 0;
+
+        state.bulkQuestions.forEach((entry, index) => {
+            const errors = validateBulkEntry(entry);
+            const duplicate = findBulkDuplicate(index);
+            const isSaved = entry.serverStatus === "created";
+            if (isSaved) readyCount += 1;
+            else if (canRetryBulkEntry(entry)) readyCount += 1;
+            else invalidCount += 1;
+
+            const card = document.createElement("article");
+            card.className = "bulk-question-entry";
+            card.dataset.entryIndex = String(index);
+            card.dataset.status = isSaved
+                ? "saved"
+                : entry.serverStatus === "duplicate"
+                    ? "duplicate"
+                    : errors.length
+                        ? "invalid"
+                        : duplicate
+                            ? "duplicate"
+                            : "valid";
+
+            const header = document.createElement("div");
+            header.className = "bulk-question-entry-header";
+            const title = textElement(
+                "strong",
+                isSaved
+                    ? `Question ${index + 1} · Saved`
+                    : entry.serverStatus === "duplicate"
+                        ? `Question ${index + 1} · Duplicate`
+                        : errors.length
+                            ? `Question ${index + 1} · Needs correction`
+                            : duplicate
+                                ? `Question ${index + 1} · Potential duplicate`
+                                : `Question ${index + 1} · Ready`
+            );
+            const remove = textElement("button", "Remove");
+            remove.type = "button";
+            remove.className = "bulk-question-remove";
+            remove.dataset.removeIndex = String(index);
+            remove.disabled = isSaved;
+            header.append(title, remove);
+            card.append(header);
+            card.append(
+                createBulkField("Question", entry.question, index, "question")
+            );
+
+            const optionGrid = document.createElement("div");
+            optionGrid.className = "bulk-question-options";
+            optionKeys.forEach((key) =>
+                optionGrid.append(
+                    createBulkField(
+                        `Option ${key}`,
+                        entry.options[key],
+                        index,
+                        "option",
+                        key
+                    )
+                )
+            );
+            card.append(optionGrid);
+
+            const settings = document.createElement("div");
+            settings.className = "question-form-grid";
+            settings.append(
+                createBulkField(
+                    "Correct answer",
+                    entry.correctAnswer,
+                    index,
+                    "correctAnswer"
+                ),
+                createBulkField("Marks", entry.marks, index, "marks")
+            );
+            card.append(settings);
+
+            const messages = [
+                ...errors,
+                ...(duplicate && !isSaved ? [duplicate] : [])
+            ];
+            if (isSaved) {
+                card.append(
+                    textElement(
+                        "p",
+                        `Saved as question ID ${entry.savedId}.`,
+                        "bulk-question-entry-errors"
+                    )
+                );
+            } else if (messages.length) {
+                card.append(
+                    textElement(
+                        "p",
+                        [...new Set(messages)].join(" "),
+                        "bulk-question-entry-errors"
+                    )
+                );
+            }
+            elements.bulkPreview.append(card);
+        });
+
+        elements.bulkSummary.textContent = state.bulkQuestions.length
+            ? `${state.bulkQuestions.length} entries · ${readyCount} ready · ${invalidCount} need correction or are duplicates.`
+            : "No questions parsed yet.";
+        elements.bulkConfirm.disabled =
+            state.bulkSaving ||
+            !state.bulkQuestions.some(canRetryBulkEntry);
+    }
+
+    function previewBulkQuestions() {
+        elements.bulkMessage.hidden = true;
+        elements.bulkResult.hidden = true;
+        if (!elements.bulkInput.value.trim()) {
+            elements.bulkMessage.textContent =
+                "Paste at least one question block before previewing.";
+            elements.bulkMessage.hidden = false;
+            return;
+        }
+
+        state.bulkQuestions = parseBulkQuestionText(elements.bulkInput.value);
+        renderBulkQuestions();
+    }
+
+    function handleBulkPreviewInput(event) {
+        const field = event.target.closest(".bulk-question-field");
+        if (!field) return;
+        const index = Number(field.dataset.entryIndex);
+        const entry = state.bulkQuestions[index];
+        if (!entry) return;
+
+        const value = field.value;
+        if (field.dataset.field === "option") {
+            entry.options[field.dataset.optionKey] = value;
+        } else {
+            entry[field.dataset.field] = value;
+        }
+        entry.serverStatus = "";
+        entry.serverErrors = [];
+        entry.parseErrors = [];
+
+        const card = field.closest(".bulk-question-entry");
+        const duplicate = findBulkDuplicate(index);
+        const errors = validateBulkEntry(entry);
+        const messages = [...errors, ...(duplicate ? [duplicate] : [])];
+        let message = card.querySelector(".bulk-question-entry-errors");
+        if (!message && messages.length) {
+            message = textElement("p", "", "bulk-question-entry-errors");
+            card.append(message);
+        }
+        if (message) {
+            message.textContent = messages.join(" ");
+            message.hidden = !messages.length;
+        }
+        card.dataset.status = errors.length
+            ? "invalid"
+            : duplicate
+                ? "duplicate"
+                : "valid";
+        card.querySelector(".bulk-question-entry-header strong").textContent =
+            `Question ${index + 1} · ${
+                errors.length
+                    ? "Needs correction"
+                    : duplicate
+                        ? "Potential duplicate"
+                        : "Ready"
+            }`;
+        renderBulkSummaryAndSaveState();
+    }
+
+    function renderBulkSummaryAndSaveState() {
+        const readyCount = state.bulkQuestions.filter(canRetryBulkEntry).length;
+        const savedCount = state.bulkQuestions.filter(
+            (entry) => entry.serverStatus === "created"
+        ).length;
+        const invalidCount =
+            state.bulkQuestions.length - readyCount - savedCount;
+        elements.bulkSummary.textContent =
+            `${state.bulkQuestions.length} entries · ${readyCount} ready · ${invalidCount} need correction or are duplicates.`;
+        elements.bulkConfirm.disabled = state.bulkSaving || readyCount === 0;
+    }
+
+    function handleBulkPreviewClick(event) {
+        const button = event.target.closest("[data-remove-index]");
+        if (!button) return;
+        const index = Number(button.dataset.removeIndex);
+        state.bulkQuestions.splice(index, 1);
+        renderBulkQuestions();
+    }
+
+    function openBulkQuestionConfirmation() {
+        const readyCount = state.bulkQuestions.filter(canRetryBulkEntry).length;
+        if (!readyCount || state.bulkSaving) return;
+
+        state.pendingAction = { action: "bulk" };
+        elements.confirmTitle.textContent = "Save valid questions?";
+        elements.confirmMessage.textContent =
+            `${readyCount} question${readyCount === 1 ? "" : "s"} will be submitted. Invalid entries will be left out, and duplicates will be reported without being inserted.`;
+        elements.confirmText.textContent = `Save ${readyCount} Questions`;
+        elements.confirmIcon.textContent = "!";
+        elements.confirmCard.dataset.action = "normal";
+        elements.confirmError.hidden = true;
+        elements.confirmError.textContent = "";
+        openModal(elements.confirmModal);
+    }
+
+    async function performBulkQuestionSave() {
+        if (state.bulkSaving) return;
+        const sourceIndexes = [];
+        const questions = [];
+        state.bulkQuestions.forEach((entry, index) => {
+            if (!canRetryBulkEntry(entry)) return;
+            sourceIndexes.push(index);
+            questions.push({
+                courseId: elements.bulkCourse.value,
+                question: entry.question.trim(),
+                options: Object.fromEntries(
+                    optionKeys.map((key) => [
+                        key,
+                        entry.options[key].trim()
+                    ])
+                ),
+                correctAnswer: entry.correctAnswer,
+                marks: Number(entry.marks)
+            });
+        });
+        if (!questions.length) return;
+
+        state.bulkSaving = true;
+        elements.bulkConfirm.disabled = true;
+        setConfirmBusy(true);
+        elements.cancelAction.disabled = true;
+
+        try {
+            const response = await adminFetch(`${endpoints.questions}/bulk`, {
+                method: "POST",
+                body: { questions }
+            });
+            const result = response?.data;
+            if (
+                response?.success !== true ||
+                !result ||
+                !Array.isArray(result.items)
+            ) {
+                throw new Error(
+                    "The bulk question endpoint returned an unexpected response."
+                );
+            }
+
+            result.items.forEach((item) => {
+                const entry = state.bulkQuestions[sourceIndexes[item.index]];
+                if (!entry) return;
+                entry.serverStatus = item.status;
+                entry.serverErrors = Array.isArray(item.errors)
+                    ? item.errors
+                    : [];
+                entry.savedId = item.id || null;
+            });
+
+            closeModal(elements.confirmModal);
+            const summary =
+                `Saved ${result.savedCount} question${result.savedCount === 1 ? "" : "s"}; ` +
+                `${result.duplicateCount} duplicate${result.duplicateCount === 1 ? "" : "s"}; ` +
+                `${result.failedCount} invalid.`;
+            elements.bulkResult.textContent = summary;
+            elements.bulkResult.classList.toggle(
+                "is-error",
+                result.duplicateCount > 0 || result.failedCount > 0
+            );
+            elements.bulkResult.hidden = false;
+            renderBulkQuestions();
+            if (result.savedCount > 0) {
+                await loadQuestions();
+            }
+            showToast(summary);
+        } catch (error) {
+            console.error("Bulk question save failed:", {
+                message: error?.message || "Unknown request error",
+                name: error?.name || "Error"
+            });
+            closeModal(elements.confirmModal);
+            elements.bulkResult.textContent =
+                error.message || "The question batch could not be saved.";
+            elements.bulkResult.classList.add("is-error");
+            elements.bulkResult.hidden = false;
+        } finally {
+            state.bulkSaving = false;
+            setConfirmBusy(false);
+            elements.cancelAction.disabled = false;
+            renderBulkSummaryAndSaveState();
+        }
+    }
+
     function openModal(modal) {
         modal.hidden = false;
         modal.setAttribute("aria-hidden", "false");
@@ -395,9 +882,10 @@
 
     function closeModal(modal) {
         if (!modal || modal.hidden) return;
+        if (modal === elements.bulkModal && state.bulkSaving) return;
         modal.hidden = true;
         modal.setAttribute("aria-hidden", "true");
-        if (![elements.formModal, elements.viewModal, elements.confirmModal].some((item) => !item.hidden)) {
+        if (![elements.formModal, elements.viewModal, elements.confirmModal, elements.bulkModal].some((item) => !item.hidden)) {
             document.body.classList.remove("question-modal-open");
         }
         if (modal === elements.confirmModal) {
@@ -522,6 +1010,7 @@
                 activate: "Activate",
                 deactivate: "Deactivate",
                 delete: "Delete Question",
+                bulk: "Save Questions",
             };
             elements.confirmText.textContent = labels[state.pendingAction.action];
         }
@@ -607,6 +1096,10 @@
     async function performConfirmedAction() {
         if (!state.pendingAction || elements.confirmButton.disabled) return;
         const { action, questionId } = state.pendingAction;
+        if (action === "bulk") {
+            await performBulkQuestionSave();
+            return;
+        }
         const path = `${endpoints.questions}/${encodeURIComponent(questionId)}`;
         const question = state.questions.find((item) => item.id === questionId);
         if (!question) return;
@@ -664,6 +1157,20 @@
         elements.retry.addEventListener("click", loadQuestions);
         elements.add.addEventListener("click", () => openForm());
         elements.emptyAdd.addEventListener("click", () => openForm());
+        elements.bulkAdd.addEventListener("click", openBulkQuestionModal);
+        elements.bulkCourse.addEventListener("change", () => {
+            state.bulkQuestions.forEach((entry) => {
+                if (entry.serverStatus === "created") return;
+                entry.serverStatus = "";
+                entry.serverErrors = [];
+            });
+            renderBulkQuestions();
+        });
+        elements.bulkPreviewButton.addEventListener("click", previewBulkQuestions);
+        elements.bulkConfirm.addEventListener("click", openBulkQuestionConfirmation);
+        elements.bulkPreview.addEventListener("input", handleBulkPreviewInput);
+        elements.bulkPreview.addEventListener("change", handleBulkPreviewInput);
+        elements.bulkPreview.addEventListener("click", handleBulkPreviewClick);
         elements.clearFilters.addEventListener("click", clearFilters);
         elements.search.addEventListener("input", renderQuestions);
         elements.courseFilter.addEventListener("change", renderQuestions);
@@ -678,19 +1185,34 @@
 
         document.querySelectorAll(".question-modal-backdrop").forEach((backdrop) => {
             backdrop.addEventListener("click", (event) => {
-                if (event.target === backdrop) closeModal(backdrop);
+                if (
+                    event.target === backdrop &&
+                    !(backdrop === elements.bulkModal && state.bulkSaving)
+                ) {
+                    closeModal(backdrop);
+                }
             });
             backdrop.querySelectorAll("[data-close-modal]").forEach((button) => {
-                button.addEventListener("click", () => closeModal(backdrop));
+                button.addEventListener("click", () => {
+                    if (backdrop === elements.bulkModal && state.bulkSaving) return;
+                    closeModal(backdrop);
+                });
             });
         });
 
         document.addEventListener("keydown", (event) => {
             if (event.key !== "Escape") return;
-            const modal = [elements.confirmModal, elements.viewModal, elements.formModal].find(
+            const modal = [elements.confirmModal, elements.viewModal, elements.formModal, elements.bulkModal].find(
                 (item) => !item.hidden
             );
-            if (modal && !state.saving && !elements.confirmButton.disabled) closeModal(modal);
+            if (
+                modal &&
+                !state.saving &&
+                !state.bulkSaving &&
+                !elements.confirmButton.disabled
+            ) {
+                closeModal(modal);
+            }
         });
     }
 

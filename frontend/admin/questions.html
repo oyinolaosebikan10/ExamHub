@@ -28,6 +28,7 @@
                     </div>
                     <div class="questions-header-actions">
                         <button type="button" class="question-button question-button-secondary" id="refreshQuestionsButton">Refresh</button>
+                        <button type="button" class="question-button question-button-secondary" id="bulkAddQuestionsButton">Bulk Add</button>
                         <button type="button" class="question-button question-button-primary" id="addQuestionButton">
                             <span aria-hidden="true">+</span>
                             <span>Add Question</span>
@@ -250,6 +251,50 @@
                 <button type="button" class="question-button question-button-primary" id="confirmQuestionActionButton">
                     <span id="confirmQuestionActionText">Confirm</span>
                     <span class="question-inline-spinner" id="confirmQuestionSpinner" aria-hidden="true" hidden></span>
+                </button>
+            </footer>
+        </section>
+    </div>
+
+    <div class="question-modal-backdrop" id="bulkQuestionModal" aria-hidden="true" hidden>
+        <section class="question-modal bulk-question-modal" role="dialog" aria-modal="true" aria-labelledby="bulkQuestionTitle">
+            <header class="question-modal-header">
+                <div>
+                    <span class="question-modal-eyebrow">Question bank</span>
+                    <h2 id="bulkQuestionTitle">Bulk Add Questions</h2>
+                    <p>Paste one question per block. Select the course once for the batch; each question is validated separately.</p>
+                </div>
+                <button type="button" class="question-modal-close" data-close-modal aria-label="Close dialog">×</button>
+            </header>
+            <div class="question-form-body">
+                <label class="question-form-field" for="bulkQuestionCourse">
+                    <span>Course <b aria-hidden="true">*</b></span>
+                    <select id="bulkQuestionCourse" required>
+                        <option value="">Select a course</option>
+                    </select>
+                </label>
+                <label class="question-form-field" for="bulkQuestionInput">
+                    <span>Questions to paste</span>
+                    <textarea id="bulkQuestionInput" rows="11" spellcheck="false" placeholder="QUESTION: What does HTML stand for?&#10;A: HyperText Markup Language&#10;B: HighText Machine Language&#10;C: Hyper Transfer Markup Language&#10;D: Home Tool Markup Language&#10;ANSWER: A&#10;&#10;QUESTION: Which language is primarily used to style web pages?&#10;A: HTML&#10;B: CSS&#10;C: SQL&#10;D: JSON&#10;ANSWER: B"></textarea>
+                </label>
+                <p class="bulk-question-format">
+                    Separate questions with a blank line. Each block must contain <code>QUESTION:</code>,
+                    <code>A:</code>, <code>B:</code>, <code>C:</code>, <code>D:</code> and
+                    <code>ANSWER: A|B|C|D</code>. New questions default to 1 mark; edit marks below.
+                </p>
+                <p class="question-form-message" id="bulkQuestionMessage" role="alert" hidden></p>
+                <div class="bulk-question-preview-header">
+                    <h3>Preview and correct entries</h3>
+                    <button type="button" class="question-button question-button-secondary" id="previewBulkQuestionsButton">Preview</button>
+                </div>
+                <p class="bulk-question-summary" id="bulkQuestionSummary" aria-live="polite"></p>
+                <div class="bulk-question-preview" id="bulkQuestionPreview"></div>
+                <p class="bulk-question-result" id="bulkQuestionResult" role="status" aria-live="polite" hidden></p>
+            </div>
+            <footer class="question-modal-actions">
+                <button type="button" class="question-button question-button-secondary" data-close-modal>Close</button>
+                <button type="button" class="question-button question-button-primary" id="confirmBulkQuestionsButton" disabled>
+                    Review and Save
                 </button>
             </footer>
         </section>

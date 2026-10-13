@@ -215,17 +215,22 @@ const loadAdminNotifications = async () => {
         renderAdminNotifications();
         notificationsPageElements.error.hidden = true;
         showNotificationsFeedback("");
-        await refreshAdminNotificationCount();
     } catch (error) {
         if (requestVersion !== notificationRequestVersion) {
             return;
         }
         console.error(
-            "Load admin notifications error:",
-            error
+            "Admin notification list request failed.",
+            {
+                message: error?.message || "Unknown request error",
+                name: error?.name || "Error"
+            }
         );
+        adminNotifications = [];
+        notificationsPageElements.list.replaceChildren();
         notificationsPageElements.error.hidden = false;
         notificationsPageElements.empty.hidden = true;
+        notificationsPageElements.listNote.hidden = true;
         showNotificationsFeedback(
             error.message ||
                 "Notifications could not be loaded. Please try again.",
@@ -236,6 +241,16 @@ const loadAdminNotifications = async () => {
             setNotificationsLoading(false);
         }
     }
+
+    refreshAdminNotificationCount().catch((error) => {
+        console.warn(
+            "Admin notification list loaded, but the optional unread count refresh failed.",
+            {
+                message: error?.message || "Unknown request error",
+                name: error?.name || "Error"
+            }
+        );
+    });
 };
 
 const markOneAdminNotificationRead = async (notificationId) => {

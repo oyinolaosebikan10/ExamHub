@@ -2,6 +2,7 @@ const express = require("express");
 
 const {
     createQuestion,
+    bulkCreateQuestions,
     getQuestions,
     getQuestionById,
     updateQuestion,
@@ -23,6 +24,8 @@ const router = express.Router();
 router.use(authMiddleware, roleMiddleware("admin"));
 
 // Create question
+router.post("/bulk", bulkCreateQuestions);
+
 router.post(
     "/",
     validateQuestion,
